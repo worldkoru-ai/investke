@@ -46,15 +46,22 @@ export default function Home() {
 
   const [visibleSet, setVisibleSet] = useState(0);
 
-  // Switch between first 3 and last 3 cards every 60 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setVisibleSet((prev) => (prev === 0 ? 1 : 0));
-    }, 60000); // 60 seconds
-    return () => clearInterval(interval);
-  }, []);
+const testimonialsPerPage = 3;
+const totalPages = Math.ceil(testimonials.length / testimonialsPerPage);
 
-  const visibleTestimonials = testimonials.slice(visibleSet * 3, visibleSet * 3 + 3);
+useEffect(() => {
+  const interval = setInterval(() => {
+    setVisibleSet(prev => (prev + 1) % totalPages);
+  }, 10000);
+
+  return () => clearInterval(interval);
+}, [totalPages]);
+
+const visibleTestimonials = testimonials.slice(
+  visibleSet * testimonialsPerPage,
+  visibleSet * testimonialsPerPage + testimonialsPerPage
+);
+
 
   return (
     <div className="space-y-20 bg-white max-w-7xl mx-auto mt-8">

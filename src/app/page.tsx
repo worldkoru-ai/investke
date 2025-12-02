@@ -10,7 +10,7 @@ import Home from './Home/page';
 export default function Navigation() {
 
     return (
-       <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900 ">
+       <div className="flex flex-col min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 ">
         {/* Navbar */}
         <header className="bg-white shadow-md sticky top-0 z-50">
           <nav className="container mx-auto flex items-center justify-between p-4">

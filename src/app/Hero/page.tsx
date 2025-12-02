@@ -2,7 +2,7 @@ import React from "react";
 
 export default function Hero() {
   return (
-    <section className="relative flex flex-col items-center justify-center text-center py-24 px-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 text-white overflow-hidden rounded-3xl shadow-xl">
+    <section className="relative flex flex-col items-center justify-center text-center py-24 px-6 bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-600 text-white overflow-hidden rounded-3xl shadow-xl">
       {/* Floating Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute w-48 h-48 bg-blue-400/20 rounded-full blur-3xl top-10 left-10 animate-pulse"></div>

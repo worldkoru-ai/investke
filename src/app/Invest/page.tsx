@@ -25,20 +25,20 @@ export default function Invest() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(true);
 
-//   useEffect(() => {
-//     loadPlans();
-//   }, []);
+  useEffect(() => {
+    loadPlans();
+  }, []);
 
-//   const loadPlans = async () => {
-//     try {
-//       const plansData = await api.getInvestmentPlans();
-//       setPlans(plansData);
-//     } catch (error) {
-//       console.error('Failed to load plans:', error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+  const loadPlans = async () => {
+    try {
+      const plansData = await fetch("/api/plans").then(res => res.json()).then(data => data.plans);
+      setPlans(plansData);
+    } catch (error) {
+      console.error('Failed to load plans:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const calculateReturn = () => {
     if (!selectedPlan || !investmentAmount) return null;
@@ -115,25 +115,25 @@ export default function Invest() {
         <p className="text-gray-600 mb-8">Select a plan that fits your goals</p>
 
         {loading ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 ">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3  gap-6 mb-8">
               {plans.map(plan => (
                 <div
                   key={plan.id}
-                  className={`bg-white rounded-xl shadow-sm p-6 border-2 cursor-pointer transition-all ${
+                  className={` rounded-xl bg-blue-100 shadow-sm p-6 border-2 cursor-pointer transition-all ${
                     selectedPlan?.id === plan.id
                       ? 'border-indigo-600 shadow-lg transform scale-105'
                       : 'border-gray-200 hover:border-indigo-300 hover:shadow-md'
                   }`}
                   onClick={() => setSelectedPlan(plan)}
                 >
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-4  ">
                     <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
-                    <Percent className="w-6 h-6 text-indigo-600" />
+                    
                   </div>
                   <p className="text-3xl font-bold text-indigo-600 mb-2">{plan.interestRate}%</p>
                   <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
@@ -152,7 +152,7 @@ export default function Invest() {
             </div>
 
             {selectedPlan && (
-              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+              <div className="bg-blue-100 rounded-xl shadow-sm p-6  border border-gray-200">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Investment Amount</h3>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">

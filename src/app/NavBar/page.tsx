@@ -30,7 +30,7 @@ export default function NavBar() {
             >
               Save
             </button>
-            <Link href="/Invest" passHref legacyBehavior>
+            <Link href="/Invest" >
               <button
                 className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
               >
