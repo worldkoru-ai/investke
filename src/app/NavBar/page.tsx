@@ -20,7 +20,7 @@ export default function NavBar() {
           <div className="flex items-center gap-6">
             <button
               onClick={() => onNavigate('dashboard')}
-              className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+              className=" hidden sm:inline  text-gray-700 hover:text-indigo-600 font-medium transition-colors"
             >
               Dashboard
             </button>
