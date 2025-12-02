@@ -25,6 +25,7 @@ export async function GET() {
       user: {
         id: decoded.userId,
         email: decoded.email,
+        name: decoded.name,
         // Add other user fields you stored in the token
       }
     });
