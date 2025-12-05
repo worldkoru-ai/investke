@@ -39,7 +39,7 @@ CREATE TABLE investments (
 );
 
 
-CREATE TABLE withdrawals (
+CREATE TABLE withdrawal (
     id INT AUTO_INCREMENT PRIMARY KEY,
     userId INT NOT NULL,
     investmentId INT,
@@ -48,5 +48,15 @@ CREATE TABLE withdrawals (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (investmentId) REFERENCES investments(id) ON DELETE SET NULL
+);
+
+CREATE TABLE withdrawals (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36),
+  amount DECIMAL(12,2),
+  status ENUM('PENDING', 'APPROVED', 'PAID') DEFAULT 'PENDING',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
