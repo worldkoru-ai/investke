@@ -1,0 +1,62 @@
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    walletBalance DECIMAL(15,2) DEFAULT 0,
+    totalInvested DECIMAL(15,2) DEFAULT 0,
+    totalInterestEarned DECIMAL(15,2) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE investment_plans (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    interestRate DECIMAL(5,2) NOT NULL,   -- e.g., 12.5%
+    minAmount DECIMAL(15,2) NOT NULL,
+    maxAmount DECIMAL(15,2) NOT NULL,
+    durationDays INT NOT NULL,
+    compoundingPeriod ENUM('daily', 'weekly', 'monthly') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE investments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT NOT NULL,
+    planId INT NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
+    currentInterest DECIMAL(15,2) DEFAULT 0,
+    expectedInterest DECIMAL(15,2) DEFAULT 0,
+    status ENUM('active', 'completed') DEFAULT 'active',
+    startDate DATE,   -- remove DEFAULT
+    maturityDate DATE NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (planId) REFERENCES investment_plans(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE withdrawal (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT NOT NULL,
+    investmentId INT,
+    amount DECIMAL(15,2) NOT NULL,
+    type ENUM('interest', 'principal') NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (investmentId) REFERENCES investments(id) ON DELETE SET NULL
+);
+
+CREATE TABLE withdrawals (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36),
+  amount DECIMAL(12,2),
+  status ENUM('PENDING', 'APPROVED', 'PAID') DEFAULT 'PENDING',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
