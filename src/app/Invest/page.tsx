@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Percent, Calendar, DollarSign, ArrowLeft } from "lucide-react";
 import NavBar from "../NavBar/page";
 
@@ -24,18 +24,22 @@ export default function Invest() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
+  const amountRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     loadPlans();
   }, []);
 
+  useEffect(() => {
+    if (showModal) amountRef.current?.focus();
+  }, [showModal]);
+
   const loadPlans = async () => {
     try {
-      const plansData = await fetch("/api/plans")
-        .then((res) => res.json())
-        .then((data) => data.plans);
-      setPlans(plansData);
-    } catch (error) {
-      console.error("Failed to load plans:", error);
+      const data = await fetch("/api/plans").then((res) => res.json());
+      setPlans(data.plans || []);
+    } catch (err) {
+      console.error("Failed to load plans:", err);
     } finally {
       setLoading(false);
     }
@@ -43,92 +47,71 @@ export default function Invest() {
 
   const calculateReturn = () => {
     if (!selectedPlan || !investmentAmount) return null;
-
     const amount = parseFloat(investmentAmount);
-    const periodsPerYear = {
-      daily: 365,
-      weekly: 52,
-      monthly: 12,
-    };
-
+    const periodsPerYear = { daily: 365, weekly: 52, monthly: 12 };
     const n = periodsPerYear[selectedPlan.compoundingPeriod];
     const r = selectedPlan.interestRate / 100;
     const t = selectedPlan.durationDays / 365;
-
     const totalAmount = amount * Math.pow(1 + r / n, n * t);
-    const interest = totalAmount - amount;
-
-    return {
-      principal: amount,
-      interest: interest,
-      total: totalAmount,
-    };
+    return { principal: amount, interest: totalAmount - amount, total: totalAmount };
   };
 
-  const onInvest = async ({
-    planId,
-    amount,
-    phoneNumber,
-  }: {
-    planId: string;
-    amount: number;
-    phoneNumber: string;
-  }) => {
+  const formatPhone = (phone: string) => {
+    const cleaned = phone.trim();
+    if (cleaned.startsWith("+")) return cleaned;
+    if (cleaned.startsWith("0")) return `+254${cleaned.slice(1)}`;
+    if (cleaned.startsWith("254")) return `+${cleaned}`;
+    return cleaned;
+  };
+
+  const isValidPhone = (phone: string) => /^\+254[17]\d{8}$/.test(phone);
+
+  const onInvest = async ({ planId, amount, phone }: { planId: string; amount: number; phone: string }) => {
     try {
-      // Replace with real API call
-      console.log("Investing:", { planId, amount, phoneNumber });
-      alert("Investment confirmed!");
-      setShowModal(false);
-      setInvestmentAmount("");
-      setPhoneNumber("");
-    } catch (error) {
-      console.error("Investment failed:", error);
+      const res = await fetch("/api/paystack/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId, amount, phone }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Payment initialization failed");
+        return;
+      }
+
+      window.location.href = data.data.authorization_url;
+    } catch (err) {
+      console.error("Investment failed:", err);
+      alert("Something went wrong. Try again.");
     }
   };
 
   const handleSubmit = () => {
-    if (!selectedPlan || !investmentAmount || !phoneNumber) return;
+    if (!selectedPlan) return;
 
-    onInvest({
-      planId: selectedPlan.id,
-      amount: parseFloat(investmentAmount),
-      phoneNumber: phoneNumber,
-    });
+    const amount = parseFloat(investmentAmount);
+    const phone = formatPhone(phoneNumber);
+
+    if (!amount || amount < (selectedPlan.minAmount ?? 0) || amount > (selectedPlan.maxAmount ?? Infinity)) {
+      alert(`Enter a valid amount between ${selectedPlan.minAmount} and ${selectedPlan.maxAmount}`);
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      alert("Enter a valid Kenyan phone number in format +2547XXXXXXXX or 07XXXXXXXX");
+      return;
+    }
+
+    onInvest({ planId: selectedPlan.id, amount, phone });
   };
-
-  function onNavigate(route: string) {
-    // Placeholder navigation
-    console.log("Navigate to:", route);
-  }
 
   const returns = calculateReturn();
 
-  // Modal component
-  const Modal = ({
-    open,
-    onClose,
-    children,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    children: React.ReactNode;
-  }) => {
-    if (!open) return null;
 
-    return (
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-[999]">
-        <div className="bg-blue-50 rounded-xl p-6 w-[90%] max-w-md shadow-lg relative">
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 text-gray-500 hover:text-black text-lg"
-          >
-            ✕
-          </button>
-          {children}
-        </div>
-      </div>
-    );
-  };
+  function onNavigate(route: string) {
+    console.log("Navigate to:", route);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
@@ -139,15 +122,14 @@ export default function Invest() {
           onClick={() => onNavigate("dashboard")}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
         >
-          <ArrowLeft size={20} />
-          Back to Dashboard
+          <ArrowLeft size={20} /> Back to Dashboard
         </button>
 
         <h2 className="text-3xl font-bold text-gray-900 mb-2">Choose Investment Plan</h2>
         <p className="text-gray-600 mb-8">Select a plan that fits your goals</p>
 
         {loading ? (
-          <div className="text-center py-12 ">
+          <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           </div>
         ) : (
@@ -168,15 +150,13 @@ export default function Invest() {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
                 </div>
-
                 <p className="text-3xl font-bold text-indigo-600 mb-2">{plan.interestRate}%</p>
                 <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
-
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-gray-700">
                     <DollarSign className="w-4 h-4" />
                     <span>
-                      Min: ${plan.minAmount} - Max: ${plan.maxAmount}
+                      Min: Ksh. {plan.minAmount} - Max: Ksh. {plan.maxAmount}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-700">
@@ -188,64 +168,60 @@ export default function Invest() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Payment Modal */}
-      <Modal open={showModal} onClose={() => setShowModal(false)}>
-        {selectedPlan && (
-          <div className="">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedPlan.name}</h3>
-            <p className="text-gray-600 mb-4">
-              Invest between ${selectedPlan.minAmount} - ${selectedPlan.maxAmount}
-            </p>
-
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Investment Amount
-            </label>
-            <input
-              type="number"
-              value={investmentAmount}
-              onChange={(e) => setInvestmentAmount(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4"
-              placeholder="Enter amount"
-              min={selectedPlan.minAmount}
-              max={selectedPlan.maxAmount}
-            />
-
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number
-            </label>
-            <input
-              type="text"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-6"
-              placeholder="Enter phone number"
-            />
-
-            {returns && (
-              <div className="bg-indigo-50 p-4 rounded-lg mb-4 border border-indigo-200">
-                <p className="text-sm text-gray-700">
-                  Expected Return:{" "}
-                  <span className="font-bold text-indigo-600">${returns.total.toFixed(2)}</span>
-                </p>
+        {showModal && selectedPlan && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-indigo-50 rounded-lg shadow-lg w-full max-w-md p-8">
+              <h3 className="text-lg text-black font-semibold mb-4">Invest in {selectedPlan.name}</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-black mb-1">Investment Amount (KSH)</label>
+                  <input
+                    ref={amountRef}
+                    type="number" 
+                    className="w-full border text-black px-4 py-2 rounded"
+                    placeholder={`Min: ${selectedPlan.minAmount}, Max: ${selectedPlan.maxAmount}`}
+                    value={investmentAmount}
+                    onChange={(e) => setInvestmentAmount(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-black mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    className="w-full border text-black px-4 py-2 rounded"
+                    placeholder="e.g., +2547XXXXXXXX or 07XXXXXXXX"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                </div>
+                {returns && (
+                  <div className="bg-white p-4 rounded shadow">
+                    <h4 className="text-black font-semibold mb-2">Projected Returns:</h4>
+                    <p className="text-black">Principal: ${returns.principal.toFixed(2)}</p>
+                    <p className="text-black">Interest: ${returns.interest.toFixed(2)}</p>
+                    <p className="text-black font-bold">Total: ${returns.total.toFixed(2)}</p>
+                  </div>
+                )}
+                <div className="flex justify-end gap-3 border-t pt-4">
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 text-black bg-gray-200 rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+                  >
+                    Invest Now
+                  </button>
+                </div>
               </div>
-            )}
-
-            <button
-              onClick={handleSubmit}
-              disabled={
-                !investmentAmount ||
-                parseFloat(investmentAmount) < selectedPlan.minAmount ||
-                parseFloat(investmentAmount) > selectedPlan.maxAmount
-              }
-              className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              Confirm Investment
-            </button>
+            </div>
           </div>
         )}
-      </Modal>
+      </div>
+
     </div>
   );
 }

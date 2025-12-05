@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useState}from 'react';
+import {use, useEffect, useState}from 'react';
 import { Wallet, TrendingUp, DollarSign, Calendar } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import NavBar from '../NavBar/page';
@@ -22,6 +22,7 @@ type Withdrawal = {
 };
 
 type User = {
+  id: string;
   name: string;
   email: string;
   walletBalance?: number;
@@ -33,9 +34,12 @@ type User = {
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
+  const [modalType, setModalType] = useState<"topup" | "withdraw" | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
+  const [amount, setAmount] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -61,10 +65,82 @@ export default function Dashboard() {
     fetchUser();
   }, [router]);
 
-  const handleWithdrawInterest = async (investmentId: string) => {
-    // Implement your withdraw interest logic
-    console.log("Withdrawing interest for:", investmentId);
+  const fetchUserData = async () => {
+  try {
+    const res = await fetch("/api/me");
+    const data = await res.json();
+    if (res.ok) setUser(data.user);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+  // ---------------------
+  // HANDLERS
+  // ---------------------
+
+  console.log("User data:", user);
+  const handleWalletWithdrawalRequest = async () => {
+      console.log("User data:", user);
+    if (!amount || !user) return;
+
+    try {
+      const response = await fetch("/api/withdrawal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: Number(amount),
+          email: user.email,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Error:", data.error);
+        return;
+      }
+
+      setModalType(null);
+      setAmount("");
+      console.log("Withdrawal request created:", data);
+
+       await fetchUserData();
+    } catch (err) {
+      await fetchUserData();
+      console.error("Failed to send request:", err);
+    }
   };
+
+  const handleConfirmTopup1 = async () => {
+    if (!amount || !user) return;
+
+    try {
+      const response = await fetch("/api/wallet/topup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: Number(amount),
+          userId: user.id,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Error:", data.error);
+        return;
+      }
+
+      // Optimistically update wallet balance
+      setUser(prev => prev ? { ...prev, walletBalance: (prev.walletBalance || 0) + Number(amount) } : prev);
+
+      setModalType(null);
+      setAmount("");
+      console.log("Wallet topped up:", data);
+    } catch (err) {
+      console.error("Failed to top up:", err);
+    }
+  };
+
 
   const handleCompleteInvestment = async (investmentId: string) => {
     // Implement your complete investment logic
@@ -104,6 +180,14 @@ export default function Dashboard() {
   const activeInvestments = user?.investments?.filter(inv => inv.status === 'active') || [];
   const recentWithdrawals = user?.withdrawals?.slice(-5).reverse() || [];
 
+  function handleConfirmTopup() {
+    throw new Error('Function not implemented.');
+  }
+
+  function setTopupAmount(value: string): void {
+    throw new Error('Function not implemented.');
+  }
+
   return (
     <>
     <NavBar />
@@ -126,18 +210,6 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Wallet Balance</p>
-                <p className="text-2xl font-bold text-gray-900">${user.walletBalance?.toFixed(2) || '0.00'}</p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <Wallet className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
                 <p className="text-sm text-gray-600 mb-1">Total Invested</p>
                 <p className="text-2xl font-bold text-gray-900">${user.totalInvested?.toFixed(2) || '0.00'}</p>
               </div>
@@ -146,6 +218,26 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Wallet Balance</p>
+                <p className="text-2xl font-bold text-gray-900">${user.walletBalance ? Number(user.walletBalance).toFixed(2) : '0.00'}</p>
+              </div>
+              <div className="bg-indigo-100 p-3 rounded-lg">
+                <Wallet className="w-6 h-6 text-indigo-600" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <button
+                onClick={() => setModalType("topup")}
+                className="mt-4 w-full bg-indigo-600 text-white py-2 rounded-lg"
+              >
+                Top Up Wallet
+              </button>
+          </div>
+          </div>
+
 
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <div className="flex items-center justify-between">
@@ -153,10 +245,19 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-600 mb-1">Interest Earned</p>
                 <p className="text-2xl font-bold text-gray-900">${user.totalInterestEarned?.toFixed(2) || '0.00'}</p>
               </div>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
+              <div className="bg-indigo-100 p-3 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-indigo-600" />
               </div>
             </div>
+            <div className="mt-4">
+               <button
+                onClick={() => setModalType("withdraw")}
+                className="mt-4 w-full bg-indigo-600 text-white py-2 rounded-lg"
+              >
+                Request Withdrawal
+              </button>
+
+              </div>  
           </div>
         </div>
 
@@ -212,7 +313,7 @@ export default function Dashboard() {
                     
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleWithdrawInterest(inv.id)}
+                        onClick={() => handleWalletWithdrawalRequest()}
                         disabled={!inv.currentInterest || inv.currentInterest <= 0}
                         className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium transition-colors"
                       >
@@ -256,7 +357,73 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+            {modalType && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-indigo-50 rounded-lg shadow-lg w-full max-w-md p-8">
+
+              <div className="flex justify-between items-center border-b pb-2">
+                <h3 className="text-lg  text-black font-semibold">
+                  {modalType === "topup" ? "Top Up Wallet" : "Request Withdrawal"}
+                </h3>
+                <button onClick={() => setModalType(null)}>✕</button>
+              </div>
+
+              <div className="py-4">
+                {modalType === "topup" ? (
+                  <>
+                    <input
+                      type="number"
+                      placeholder="Enter amount"
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="w-full border text-black px-4 py-2 rounded"
+                    />
+                  </>
+                ) : (
+                  < >
+                    <p className='text-black'>Withdrawals are processed within 24–48 hours.</p>
+                    <p className='text-black'>Ensure your account details are correct.</p>
+                    <br />
+         
+
+                    <input
+                      type="number"
+                      placeholder="Enter amount"
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="w-full border text-black px-4 py-2 rounded"
+                    />
+
+                  </>
+                )}
+              </div>
+
+                       <br />
+              <div className="flex justify-end text-black gap-3 border-t pt-4">
+                <button
+                  onClick={() => setModalType(null)}
+                  className="px-4 py-2 text-black bg-gray-200 rounded"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={() => {
+                    modalType === "topup"
+                      ? handleConfirmTopup()
+                      : handleWalletWithdrawalRequest();
+                  }}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded"
+                >
+                  Continue
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
     </div>
       </>
   );
 }
+
+

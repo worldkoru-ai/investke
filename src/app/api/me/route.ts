@@ -26,6 +26,7 @@ export async function GET() {
         id: decoded.userId,
         email: decoded.email,
         name: decoded.name,
+        walletBalance: decoded.walletBalance,
         // Add other user fields you stored in the token
       }
     });

@@ -22,7 +22,7 @@ export default function NavBar() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await fetch("/api/me");
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
@@ -59,7 +59,7 @@ export default function NavBar() {
           {/* LOGO */}
           <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
             <TrendingUp className="w-6 h-6 text-indigo-600" />
-            <h1 className="text-xl font-bold text-indigo-600">InvestPro</h1>
+            <h1 className="text-xl font-bold text-indigo-600">Exovest</h1>
           </Link>
 
           {/* NAV LINKS */}
