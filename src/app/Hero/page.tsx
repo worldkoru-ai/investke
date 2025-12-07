@@ -1,6 +1,10 @@
+import { i } from "framer-motion/client";
 import React from "react";
+import { useRouter } from "next/navigation";
+import { Router } from "lucide-react";
 
 export default function Hero() {
+  const router = useRouter();
   return (
     <section className="relative flex flex-col items-center justify-center text-center py-24 px-6 bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-600 text-white overflow-hidden rounded-3xl shadow-xl">
       {/* Floating Background Elements */}
@@ -20,8 +24,11 @@ export default function Hero() {
         </p>
 
         <div className="flex flex-wrap justify-center gap-6 mt-6">
-          <button className="bg-white text-blue-700 font-semibold px-8 py-3 rounded-lg shadow-md hover:bg-gray-100 transition">
+          <button
+          onClick={() => router.push('/signup')}
+           className="bg-white text-blue-700 font-semibold px-8 py-3 rounded-lg shadow-md hover:bg-gray-100 transition">
             Get Started
+            
           </button>
           <button className="border border-white text-white font-semibold px-8 py-3 rounded-lg hover:bg-white hover:text-blue-700 transition">
             Learn More

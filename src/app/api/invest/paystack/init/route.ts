@@ -4,7 +4,8 @@ type InitBody = {
   email: string;
   amount: number | string; // amount in Naira
   callback_url?: string;
-  userId: string;           // REQUIRED for wallet top-up
+  userId: string;  
+  planId: string;         // REQUIRED for wallet top-up
   metadata?: Record<string, unknown>;
   reference?: string;
 };
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { email, amount, callback_url, userId, metadata, reference } = body;
+  const { email, amount, callback_url, userId,planId, metadata, reference } = body;
 
   if (!email || !amount || Number.isNaN(Number(amount)) || Number(amount) <= 0) {
     return NextResponse.json(
@@ -65,7 +66,8 @@ export async function POST(req: Request) {
     metadata: {
       ...(metadata || {}), // include any extra metadata
       userId,
-      type: "wallet",
+      planId,
+      type: "investment",
     },
   };
 

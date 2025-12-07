@@ -70,11 +70,6 @@ export default function NavBar() {
               </span>
             </Link>
 
-            <Link href="/topup">
-              <span className="text-gray-700 hover:text-indigo-600 font-medium transition-colors">
-                Save
-              </span>
-            </Link>
 
             <Link href="/Invest">
               <span className="text-gray-700 hover:text-indigo-600 font-medium transition-colors">

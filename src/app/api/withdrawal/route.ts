@@ -3,49 +3,72 @@ import { getDb } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
-    const { amount, email } = await req.json();
+    const { userId, amount, reason } = await req.json();
 
-    if (!amount || amount <= 0) {
-      return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+    if (!userId || !amount || amount <= 0) {
+      return NextResponse.json(
+        { error: "Invalid withdrawal request" },
+        { status: 400 }
+      );
     }
 
-    // 1. Get user by email
-    const [rows]: any = await getDb().query(
-      "SELECT id, walletBalance FROM users WHERE email = ?",
-      [email]
-    );
-    const user = rows[0];
+    const db = getDb();
 
-    if (!user) {
+    // ✅ 1. Get user wallet balance
+    const [users]: any = await db.query(
+      "SELECT walletBalance FROM users WHERE id = ? LIMIT 1",
+      [userId]
+    );
+
+    if (users.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (user.wallet_balance < amount) {
+    const walletBalance = users[0].walletBalance;
+
+    if (walletBalance < amount) {
       return NextResponse.json(
         { error: "Insufficient wallet balance" },
         { status: 400 }
       );
     }
 
-    // 2. Create withdrawal request
-    await getDb().query(
-      `INSERT INTO withdrawals (user_id, amount, status)
-       VALUES (?, ?, 'PENDING')`,
-      [user.id, amount]
+    // ✅ 2. Start DB Transaction
+    await db.query("START TRANSACTION");
+
+    // ✅ 3. Deduct wallet
+    await db.query(
+      "UPDATE users SET walletBalance = walletBalance - ? WHERE id = ?",
+      [amount, userId]
     );
 
-    // Optionally, reduce wallet balance immediately (or do it on approval)
-    await getDb().query(
-      "UPDATE users SET walletBalance = walletBalance - ? WHERE id = ?",
-      [amount, user.id]
+    // ✅ 4. Log withdrawal
+    await db.query(
+      `INSERT INTO withdrawals (userId, amount, method, status, reason)
+       VALUES (?, ?, 'wallet', 'pending', ?)`,
+      [userId, amount, reason || "Wallet withdrawal"]
     );
+
+    // ✅ 5. Commit transaction
+    await db.query("COMMIT");
 
     return NextResponse.json({
       success: true,
-      message: "Withdrawal request submitted and pending approval",
+      message: "Withdrawal request submitted successfully",
+      amount,
     });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+
+  } catch (err: any) {
+    console.error("WITHDRAW ERROR:", err);
+
+    try {
+      const db = getDb();
+      await db.query("ROLLBACK");
+    } catch {}
+
+    return NextResponse.json(
+      { error: "Withdrawal failed", details: err.message },
+      { status: 500 }
+    );
   }
 }
