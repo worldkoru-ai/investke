@@ -19,6 +19,7 @@ export async function getUserById(userId: string) {
   const db = getDb();
   const [rows]: any = await db.query("SELECT * FROM users WHERE id = ? LIMIT 1", [userId]);
   return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+
 }
 export async function getPlanById(planId: string) {
   const db = getDb();
@@ -53,3 +54,81 @@ export async function createInvestment(investment: {
   );
 }
 
+
+export async function getUserVerification(userId: string) {
+  const db = getDb();
+
+  const [rows]: any = await db.query(
+    `SELECT 
+        idType, 
+        idFrontUrl, 
+        idBackUrl, 
+        status 
+     FROM user_verifications 
+     WHERE userId = ? 
+     LIMIT 1`,
+    [userId]
+  );
+
+  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+}
+
+export async function saveUserVerification(data: {
+  userId: string;
+  idType: string;
+  idFrontUrl: string;
+  idBackUrl: string;
+}) {
+  const db = getDb();
+
+  const { userId, idType, idFrontUrl, idBackUrl } = data;
+
+  await db.query(
+    `INSERT INTO user_verifications 
+     (userId, idType, idFrontUrl, idBackUrl, status) 
+     VALUES (?, ?, ?, ?, 'pending')`,
+    [userId, idType, idFrontUrl, idBackUrl]
+  );
+}
+
+export async function updateWithdrawalDetails(userId: string, data: any) {
+  const db = getDb();
+
+  const {
+    withdrawalMethod,
+    bankName,
+    bankAccountName,
+    bankAccountNumber,
+    mobileProvider,
+    mobileNumber,
+  } = data;
+
+  await db.query(
+    `UPDATE users SET
+      withdrawalMethod = ?,
+      bankName = ?,
+      bankAccountName = ?,
+      bankAccountNumber = ?,
+      mobileProvider = ?,
+      mobileNumber = ?
+     WHERE id = ?`,
+    [
+      withdrawalMethod,
+      bankName,
+      bankAccountName,
+      bankAccountNumber,
+      mobileProvider,
+      mobileNumber,
+      userId,
+    ]
+  );
+}
+
+export async function getVerificationByUserId(userId: string) {
+  const db = getDb();
+  const [rows]: any = await db.query(
+    "SELECT * FROM verifications WHERE userId = ? LIMIT 1",
+    [userId]
+  );
+  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+}
