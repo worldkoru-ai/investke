@@ -27,6 +27,12 @@ export async function getPlanById(planId: string) {
   return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 }
 
+export async function getPlanByName(planName: string){
+  const db = getDb();
+  const [rows]: any = await db.query("SELECT * FROM investment_plans WHERE name = ? LIMIT 1", [planName]);
+  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+}
+
 export async function updateUserWallet(userId: string, newBalance: number) {
   const db = getDb();
   await db.query("UPDATE users SET walletBalance = ? WHERE id = ?", [newBalance, userId]);
