@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import NavBar from "@/app/NavBar/page";
 
 type User = {
@@ -13,10 +12,20 @@ type User = {
   status: "active" | "suspended";
 };
 
+type Verification = {
+  idType: string;
+  idFrontUrl: string;
+  idBackUrl: string;
+  status: "pending" | "approved" | "rejected";
+};
+
 export default function AdminUsers() {
-  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [verification, setVerification] = useState<Verification | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -35,23 +44,39 @@ export default function AdminUsers() {
     fetchUsers();
   }, []);
 
-  const handleAction = async (userId: string, action: string) => {
+  const handleAction = async (user: User, action: string) => {
     if (action === "") return;
-    try {
-      if (action === "view") {
-        router.push(`/admin/users/${userId}`);
-        return;
-      }
 
-      const res = await fetch(`/api/admin/users/${userId}/${action}`, {
-        method: "POST",
-      });
+    if (action === "view") {
+      // Fetch profile via POST
+      try {
+        const res = await fetch("/api/admin/get-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to fetch user");
+
+        setSelectedUser(data.user);
+        setVerification(data.verification);
+        setShowModal(true);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to fetch profile.");
+      }
+      return;
+    }
+
+    // For suspend/activate
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/${action}`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Action failed");
 
       setUsers(prev =>
         prev.map(u =>
-          u.id === userId ? { ...u, status: action === "suspend" ? "suspended" : "active" } : u
+          u.id === user.id ? { ...u, status: action === "suspend" ? "suspended" : "active" } : u
         )
       );
     } catch (err) {
@@ -60,9 +85,7 @@ export default function AdminUsers() {
     }
   };
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   return (
     <>
@@ -78,9 +101,6 @@ export default function AdminUsers() {
                 <tr className="bg-black">
                   <th className="border px-4 py-2 text-left">Name</th>
                   <th className="border px-4 py-2 text-left">Email</th>
-                  <th className="border px-4 py-2 text-right">Wallet</th>
-                  <th className="border px-4 py-2 text-right">Invested</th>
-                  <th className="border px-4 py-2 text-right">Interest</th>
                   <th className="border px-4 py-2 text-center">Status</th>
                   <th className="border px-4 py-2 text-center">Actions</th>
                 </tr>
@@ -88,46 +108,23 @@ export default function AdminUsers() {
               <tbody>
                 {users.map(user => (
                   <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="border px-4 text-black py-2">{user.name}</td>
+                    <td className="border px-4 py-2 text-black">{user.name}</td>
                     <td className="border px-4 py-2 text-black">{user.email}</td>
-                    <td className="border px-4 py-2 text-right text-black">{Number(user.walletBalance).toFixed(2)}</td>
-                    <td className="border px-4 py-2 text-right text-black">{Number(user.totalInvested).toFixed(2)}</td>
-                    <td className="border px-4 py-2 text-right text-black">{Number(user.totalInterestEarned).toFixed(2)}</td>
-                    <td className="border px-4 py-2 text-center text-black">
-
-                        <span
-                            className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            user.status === "active"
-                                ? "bg-green-100 text-green-700"
-                                : user.status === "suspended"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
-                        >
-                            {(user.status || "unknown").toUpperCase()}
-                        </span>
-
-
+                    <td className="border px-4 py-2 text-center">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          user.status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {user.status.toUpperCase()}
+                      </span>
                     </td>
-                    
-                    <td className="border text-black px-4 py-2 text-center">
+                    <td className="border px-4 py-2 text-center">
                       <select
-                        className="border  text-black rounded px-2 py-1"
+                        className="border text-black rounded px-2 py-1"
                         defaultValue=""
-                        onChange={(e) => {
-                                const action = e.target.value;
-                                if (!action) return;
-
-                                if (action === "view") {
-                                    router.push(`/admin/users/${user.id}`); // navigate to profile page
-                                } else {
-                                    handleAction(user.id, action); // suspend or activate
-                                }
-
-                                e.target.value = ""; // reset dropdown after action
-                                }}
-                            
-                        >
+                        onChange={(e) => handleAction(user, e.target.value)}
+                      >
                         <option value="">Select</option>
                         <option value="activate">Activate</option>
                         <option value="suspend">Suspend</option>
@@ -139,6 +136,37 @@ export default function AdminUsers() {
               </tbody>
             </table>
           </div>
+
+          {/* Modal */}
+          {showModal && selectedUser && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+              <div className="bg-white p-6 rounded-xl max-w-xl w-full relative">
+                <button
+                  className="absolute top-2 right-2 text-gray-500"
+                  onClick={() => setShowModal(false)}
+                >
+                  ✕
+                </button>
+                <h3 className="text-xl font-bold mb-4">{selectedUser.name}'s Profile</h3>
+                <p><b>Email:</b> {selectedUser.email}</p>
+                <p><b>Wallet:</b> ${selectedUser.walletBalance.toFixed(2)}</p>
+                <p><b>Total Invested:</b> ${selectedUser.totalInvested.toFixed(2)}</p>
+                <p><b>Total Interest:</b> ${selectedUser.totalInterestEarned.toFixed(2)}</p>
+
+                {verification && (
+                  <>
+                    <h4 className="mt-4 font-semibold">Verification Status</h4>
+                    <p><b>ID Type:</b> {verification.idType}</p>
+                    <p><b>Status:</b> {verification.status.toUpperCase()}</p>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <img src={verification.idFrontUrl} className="w-full rounded border" />
+                      <img src={verification.idBackUrl} className="w-full rounded border" />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

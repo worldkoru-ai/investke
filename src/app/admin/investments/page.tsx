@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import NavBar from "@/app/NavBar/page";
+import NavMenu from "@/app/admin/NavMenu/page";
 
 type Investment = {
   id: string;
@@ -50,7 +50,7 @@ export default function AdminInvestments() {
 
   return (
     <>
-      <NavBar />
+      <NavMenu />
       <div className="min-h-screen bg-gray-50 pt-24 px-4">
         <div className="max-w-7xl mx-auto bg-white p-6 rounded-xl shadow border">
           <h2 className="text-2xl font-bold mb-6 text-black">Investment Management</h2>

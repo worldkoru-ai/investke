@@ -58,18 +58,41 @@ export async function POST(req: Request) {
   const txReference = reference ?? makeReference();
 
   // ✅ Metadata must include userId for verify
+  // const payload = {
+  //   email,
+  //   amount: amountKobo,
+  //   callback_url,
+  //   reference: txReference,
+  //   metadata: {
+  //     ...(metadata || {}), // include any extra metadata
+  //     userId,
+  //     planId,
+  //     type: "investment",
+      
+  //   },
+  // };
+
   const payload = {
-    email,
-    amount: amountKobo,
-    callback_url,
-    reference: txReference,
-    metadata: {
-      ...(metadata || {}), // include any extra metadata
-      userId,
-      planId,
-      type: "investment",
+  email,
+  amount: amountKobo,
+  callback_url,
+  reference: txReference,
+  metadata: {
+    ...(metadata || {}),
+    userId,
+    planId,
+    type: "investment",
+  },
+
+  // ✅ Move subaccounts OUTSIDE metadata
+  subaccounts: [
+    {
+      subaccount: process.env.SUBACCOUNT_1, // must be your Subaccount Code e.g. "ACCT_12345"
+      share: 80, // subaccount gets 80%
     },
-  };
+  ],
+};
+
 
   try {
     const res = await fetch(PAYSTACK_INIT_URL, {

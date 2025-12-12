@@ -64,9 +64,16 @@ export default function NavBar() {
 
           {/* NAV LINKS */}
           <div className="flex items-center gap-6">
-            <Link href="/dashboard">
+            <Link href="/admin/sitehome">
               <span className="hidden sm:inline text-gray-700 hover:text-indigo-600 font-medium transition-colors">
-                Dashboard
+                Home
+              </span>
+            </Link>
+
+
+            <Link href="/admin/investments">
+              <span className="text-gray-700 hover:text-indigo-600 font-medium transition-colors">
+                Investments
               </span>
             </Link>
 
@@ -100,10 +107,17 @@ export default function NavBar() {
                 <div className="absolute right-0 mt-2 w-48 bg-white border shadow-md rounded-lg py-2 animate-fadeIn">
                   
                   <Link
-                    href="/profile/me"
+                    href="/admin/users"
                     className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 cursor-pointer"
                   >
-                    <User size={15} /> Profile
+                    <User size={15} /> Users
+                  </Link>
+
+                  <Link
+                    href="/admin/withdrawals"
+                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 cursor-pointer"
+                  >
+                    <Settings size={15} /> Withdrawals
                   </Link>
 
                   <button
@@ -122,4 +136,3 @@ export default function NavBar() {
   );
 }
 
-/* Small Fade Animation */
