@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ export default function ProfilePage() {
 
   const handleSubmit = async () => {
     if (!idType || !front || !back) {
-      alert("All fields required");
+      alert("All fields are required.");
       return;
     }
 
@@ -50,46 +50,67 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <div className="bg-white rounded-lg shadow-md w-full max-w-md p-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-6">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+          Profile Verification
+        </h2>
 
-        <h2 className="text-2xl  text-black font-bold mb-4">Profile Verification</h2>
+        <div className="mb-4">
+          <label className="block mb-2 text-gray-700 font-medium">ID Type</label>
+          <select
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            onChange={e => setIdType(e.target.value)}
+            value={idType}
+          >
+            <option value="">Select ID Type</option>
+            <option value="National ID">National ID</option>
+            <option value="Passport">Passport</option>
+            <option value="Driving License">Driving License</option>
+          </select>
+        </div>
 
-        <label className="block mb-2 text-black text-sm font-medium">ID Type</label>
-        <select
-          className="w-full border text-black rounded px-3 py-2 mb-4"
-          onChange={e => setIdType(e.target.value)}
-        >
-          <option value="">Select</option>
-          <option value="National ID">National ID</option>
-          <option value="Passport">Passport</option>
-          <option value="Driving License">Driving License</option>
-        </select>
+        <div className="mb-4">
+          <label className="block mb-2 text-gray-700 font-medium">Upload Front</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={e => setFront(e.target.files?.[0] || null)}
+            className="w-full text-gray-900"
+          />
+          {front && (
+            <img
+              src={URL.createObjectURL(front)}
+              alt="Front Preview"
+              className="mt-2 w-full h-32 object-cover rounded-lg border"
+            />
+          )}
+        </div>
 
-        <label className="block mb-2  text-black text-sm font-medium">Upload Front</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={e => setFront(e.target.files?.[0] || null)}
-          className="mb-4 text-black"
-        />
-
-        <label className="block mb-2  text-black text-sm font-medium">Upload Back</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={e => setBack(e.target.files?.[0] || null)}
-          className="mb-4 text-black"
-        />
+        <div className="mb-6">
+          <label className="block mb-2 text-gray-700 font-medium">Upload Back</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={e => setBack(e.target.files?.[0] || null)}
+            className="w-full text-gray-900"
+          />
+          {back && (
+            <img
+              src={URL.createObjectURL(back)}
+              alt="Back Preview"
+              className="mt-2 w-full h-32 object-cover rounded-lg border"
+            />
+          )}
+        </div>
 
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full bg-indigo-600 text-black py-2 rounded"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50"
         >
           {loading ? "Uploading..." : "Submit Verification"}
         </button>
-
       </div>
     </div>
   );

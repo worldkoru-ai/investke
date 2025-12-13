@@ -4,7 +4,7 @@ type InitBody = {
   email: string;
   amount: number | string; // amount in Naira
   callback_url?: string;
-  userId: string;  
+  userId: string;
   planId: string;         // REQUIRED for wallet top-up
   metadata?: Record<string, unknown>;
   reference?: string;
@@ -17,11 +17,8 @@ function makeReference() {
   return `ref_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-/**
- * POST /api/paystack/init
- * Body: { email, amount, callback_url?, userId, metadata?, reference? }
- * Returns Paystack initialize response (authorization_url etc.)
- */
+
+
 export async function POST(req: Request) {
   if (!PAYSTACK_KEY) {
     return NextResponse.json(
@@ -52,6 +49,8 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
+
+
 
   // Paystack expects amount in kobo (NGN). Convert Naira to kobo.
   const amountKobo = Math.round(Number(amount) * 100);

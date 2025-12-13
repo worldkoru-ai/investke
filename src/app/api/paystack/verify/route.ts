@@ -91,16 +91,18 @@ export async function GET(req: Request) {
        ✅ 5. SAVE TRANSACTION
     ------------------------------------------*/
     await db.query(
-      `INSERT INTO transactions (reference, email, amount, status, userId)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO transactions (reference, email, amount, status, userId, type)
+      VALUES (?, ?, ?, ?, ?, ?)`,
       [
         tx.reference,
         email,
         amountNaira,
         tx.status,
         userId,
+        "topup",
       ]
     );
+
 
     return NextResponse.json({
       status: true,

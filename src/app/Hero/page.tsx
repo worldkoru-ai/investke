@@ -1,3 +1,4 @@
+"use client"
 import { i } from "framer-motion/client";
 import React from "react";
 import { useRouter } from "next/navigation";
