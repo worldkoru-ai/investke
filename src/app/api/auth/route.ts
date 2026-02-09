@@ -39,7 +39,7 @@ export const authOptions = {
   ],
   session: {
     strategy: "jwt" as const, // can also use "database" for DB-backed sessions
-    maxAge: 24 * 60 * 60, // 1 day
+    maxAge: 5 * 60, // 5 minutes
   },
   callbacks: {
     // include wallet balance in JWT

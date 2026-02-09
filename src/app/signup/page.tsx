@@ -1,6 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -9,16 +11,14 @@ export default function Register() {
     password: "",
     confirmPassword: "",
   });
+    const router = useRouter();
+  
 
   const handleChange = (e: { target: { name: any; value: any; }; }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   console.log("Registering user:", formData);
-  //   // TODO: connect this with Laravel backend API
-  // };
+
   const handleSubmit = async (e: { preventDefault: () => void; }) => {
   e.preventDefault();
   try {
@@ -32,6 +32,12 @@ export default function Register() {
       }),
     });
     const data = await res.json();
+
+    if (res.ok) {
+      router.push("/login");
+      return;
+    }
+
     console.log(data);
     alert(data.message);
   } catch (err) {
@@ -108,7 +114,7 @@ export default function Register() {
           <div className="border-t border-gray-300 w-1/3"></div>
         </div>
 
-        <button
+        {/* <button
           onClick={handleGoogleSignup}
           className="w-full flex items-center justify-center text-black gap-2 border border-gray-300 py-3 rounded-lg hover:bg-gray-100 transition-all"
         >
@@ -118,7 +124,7 @@ export default function Register() {
             className="w-5 h-5 "
           />
           Continue with Google
-        </button>
+        </button> */}
 
         <p className="text-center text-gray-600 text-sm mt-6">
           Already have an account?{" "}

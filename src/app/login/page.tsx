@@ -30,38 +30,6 @@ export default function Login() {
     console.log("Login successful:", data);
   };
   
-  // const handleLogin = async (e: any) => {
-  //   e.preventDefault();
-  //   setError("");
-
-  //   const res = await fetch("/api/login", {
-  //     method: "POST",
-  //     body: JSON.stringify(form),
-  //   });
-
-  //   const data = await res.json();
-
-  //   if (!res.ok) {
-  //     return setError(data.error);
-  //   }
-
-  //   // Fetch user data from server
-  //   const userRes = await fetch("/api/me"); // we will create this route
-  //   const userData = await userRes.json();
-
-  //   if (userRes.ok) {
-  //     setUser(userData.user);
-  //   } else {
-  //     setError(userData.error || "Failed to fetch user data");
-  //   }
-  // };
-
-  // // Redirect to dashboard page if user exists
-  // useEffect(() => {
-  //   if (user) {
-  //     router.push("/dashboard"); // optional if using separate page
-  //   }
-  // }, [user, router]);
 
   return (
 
