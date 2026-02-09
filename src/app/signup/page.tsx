@@ -19,32 +19,6 @@ export default function Register() {
   };
 
 
-//   const handleSubmit = async (e: { preventDefault: () => void; }) => {
-//   e.preventDefault();
-//   try {
-//     const res = await fetch("/api/register", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({
-//         name: formData.name,
-//         email: formData.email,
-//         password: formData.password,
-//       }),
-//     });
-//     const data = await res.json();
-
-//     if (res.ok) {
-//       router.push("/login");
-//       return;
-//     }
-
-//     console.log(data);
-//     alert(data.message);
-//   } catch (err) {
-//     console.error("Error:", err);
-//   }
-// };
-
 const handleSubmit = async (e: { preventDefault: () => void; }) => {
   e.preventDefault();
   
@@ -66,11 +40,12 @@ const handleSubmit = async (e: { preventDefault: () => void; }) => {
     const data = await res.json();
 
     if (res.ok) {
-      router.push("/dashboard");  // ← Change from "/login" to "/dashboard"
+      alert("Account created successfully! Please login.");
+      router.push("/login");  // ← Redirect to login
       return;
     }
 
-    alert(data.message || data.error);
+    alert(data.error || "Registration failed");
   } catch (err) {
     console.error("Error:", err);
     alert("Registration failed");

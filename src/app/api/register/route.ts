@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 
 export async function POST(req: Request) {
   try {
@@ -29,28 +28,11 @@ export async function POST(req: Request) {
     );
     console.log("User inserted:", result);
 
-    const userId = result.insertId;
-    
-    // ✅ FIX: Match the login endpoint format
-    const token = jwt.sign(
-      { 
-        userId: userId,  // ← Changed from "id" to "userId"
-        email: email,
-        name: name,
-        walletBalance: 0  // ← Add this for consistency
-      }, 
-      process.env.JWT_SECRET || "secretkey", 
-    );
+    // ✅ Just return success - NO token, NO cookie
+    return NextResponse.json({ 
+      message: "Account created successfully. Please login." 
+    }, { status: 201 });
 
-    const response = NextResponse.json({ message: "Account created successfully" });
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60,
-    });
-
-    return response;
   } catch (error: any) {
     console.error("Signup route error:", error);
     return NextResponse.json({ error: error.message || "Server error" }, { status: 500 });
