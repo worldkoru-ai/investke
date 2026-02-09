@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const [users]: any = await db.query(`
       SELECT 
         id, name, email, walletBalance, totalInvested, totalInterestEarned, 
-        createdAt, isAdmin
+        isAdmin
       FROM users
     `);
 

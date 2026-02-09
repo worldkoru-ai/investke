@@ -12,8 +12,7 @@ export async function GET(req: NextRequest) {
       SELECT 
         i.id, i.userId, i.planId, i.amount, i.status, 
         i.endDate, i.currentInterest, i.expectedInterest, i.createdAt,
-        u.name as userName, u.email as userEmail,
-        p.name as planName, p.interestRate, p.duration
+        u.name as userName, u.email as userEmail, p.interestRate, p.duration
       FROM investments i
       LEFT JOIN users u ON i.userId = u.id
       LEFT JOIN plans p ON i.planId = p.id
