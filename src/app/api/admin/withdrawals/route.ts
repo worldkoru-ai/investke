@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const db = getDb();
     const [withdrawals]: any = await db.query(`
       SELECT 
-        w.id, w.userId, w.amount, w.status, w.type, w.createdAt,
+        w.id, w.userId, w.amount, w.status, w.method, w.createdAt,
         u.name as userName, u.email as userEmail
       FROM withdrawals w
       LEFT JOIN users u ON w.userId = u.id

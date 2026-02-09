@@ -13,7 +13,6 @@ export async function GET(req: NextRequest) {
         id, name, email, walletBalance, totalInvested, totalInterestEarned, 
         createdAt, isAdmin
       FROM users
-      ORDER BY createdAt DESC
     `);
 
     return NextResponse.json({ users }, { status: 200 });
