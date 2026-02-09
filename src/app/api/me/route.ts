@@ -24,14 +24,16 @@ export async function GET() {
 
     return NextResponse.json(
       {
-        user,
+        user: {
+          ...user,
+          isAdmin: user.isAdmin || false  // ✅ Include isAdmin
+        },
         verification,
       },
       { status: 200 }
     );
   } catch (error: any) {
     console.error("ME API ERROR:", error.message);
-
     return NextResponse.json(
       { error: "Invalid or expired token" },
       { status: 401 }
