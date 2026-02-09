@@ -661,63 +661,6 @@ export default function Dashboard() {
     }
   };
 
-  // const handleInvestmentTopup = async (investment: Investment, amount: number, method: "wallet" | "paystack") => {
-  //   if (!user?.id) return alert("User not loaded");
-  //   if (!investment) return alert("Select an investment to top up");
-
-  //   if (!amount || amount <= 0) return alert("Enter a valid amount");
-
-  //   try {
-  //     if (method === "wallet") {
-  //       if (user.walletBalance! < amount) {
-  //         alert("Insufficient wallet balance");
-  //         return;
-  //       }
-
-  //       const res = await fetch("/api/invest/topup/wallet", {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ userId: user.id, planId: investment.planId, amount }),
-  //       });
-
-  //       const data = await res.json();
-  //       if (!res.ok) {
-  //         alert(data.error || "Top up failed");
-  //         return;
-  //       }
-
-  //       alert("Investment topped up successfully!");
-  //       await fetchUserData();
-  //       setModalType(null);
-  //       setAmount("");
-  //       setSelectedInvestment(null);
-  //     } else {
-  //       // Paystack
-  //       const response = await fetch("/api/invest/paystack/init", {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({
-  //           amount: Number(amount),
-  //           userId: user.id,
-  //           email: user.email,
-  //           planId: investment.planId,
-  //           callback_url: `${window.location.origin}/payment/invest/verify`,
-  //         }),
-  //       });
-
-  //       const data = await response.json();
-  //       if (!response.ok) {
-  //         alert(data.error);
-  //         return;
-  //       }
-
-  //       window.location.href = data.data.authorization_url;
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Top up failed");
-  //   }
-  // };
 
   const handleInvestmentTopup = async (investment: Investment, amount: number, method: "wallet" | "paystack") => {
     console.log("handleInvestmentTopup called with:", { investment, amount, method });
@@ -725,7 +668,15 @@ export default function Dashboard() {
   if (!investment) return alert("Select an investment to top up");
   if (!amount || amount <= 0) return alert("Enter a valid amount");
 
-  console.log("Investment object:", investment); // Debug log to see what's available
+  if(investment.planId === undefined) {
+
+  if(investment.planName==='Growth'){
+    investment.planId='4';}
+  else if(investment.planName==='Premium'){
+    investment.planId='5';}
+  else if(investment.planName==='Elite'){
+    investment.planId='6';}
+}
 
   try {
     if (method === "wallet") {
@@ -739,8 +690,8 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           userId: user.id, 
-          investmentId: investment.id, // Use investment ID instead
-          planName: investment.planName,   // Keep this if available
+          investmentId: investment.id, 
+          planName: investment.planName,  
           amount 
         }),
       });
@@ -757,18 +708,24 @@ export default function Dashboard() {
       setAmount("");
       setSelectedInvestment(null);
     } else {
+
       // Paystack
-      const response = await fetch("/api/invest/paystack/init", {
+      const response = await fetch("/api/invest/topup/paystack/init", {
+
+        
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: Number(amount),
           userId: user.id,
           email: user.email,
-          investmentId: investment.id, // Use investment ID instead
-          planId: investment.planId,   // Keep this if available
-          callback_url: `${window.location.origin}/payment/invest/verify`,
+          investmentId: investment.id,          
+          planId:investment.planId,
+          callback_url: `${window.location.origin}/payment/invest/topup/verify`,
         }),
+
+
+        
       });
 
       const data = await response.json();
