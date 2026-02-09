@@ -66,11 +66,6 @@ export default function Dashboard() {
     try {
       const u = await fetch("/api/me").then(r => r.json());
 
-      if(!u.ok) {
-        return router.push("/login");
-        return
-      }
-
       if (!u?.user) return router.push("/login");
 
       const [i, w, t] = await Promise.all([
