@@ -19,8 +19,40 @@ export default function Register() {
   };
 
 
-  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+//   const handleSubmit = async (e: { preventDefault: () => void; }) => {
+//   e.preventDefault();
+//   try {
+//     const res = await fetch("/api/register", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         name: formData.name,
+//         email: formData.email,
+//         password: formData.password,
+//       }),
+//     });
+//     const data = await res.json();
+
+//     if (res.ok) {
+//       router.push("/login");
+//       return;
+//     }
+
+//     console.log(data);
+//     alert(data.message);
+//   } catch (err) {
+//     console.error("Error:", err);
+//   }
+// };
+
+const handleSubmit = async (e: { preventDefault: () => void; }) => {
   e.preventDefault();
+  
+  if (formData.password !== formData.confirmPassword) {
+    alert("Passwords don't match!");
+    return;
+  }
+
   try {
     const res = await fetch("/api/register", {
       method: "POST",
@@ -34,17 +66,16 @@ export default function Register() {
     const data = await res.json();
 
     if (res.ok) {
-      router.push("/login");
+      router.push("/dashboard");  // ← Change from "/login" to "/dashboard"
       return;
     }
 
-    console.log(data);
-    alert(data.message);
+    alert(data.message || data.error);
   } catch (err) {
     console.error("Error:", err);
+    alert("Registration failed");
   }
 };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">

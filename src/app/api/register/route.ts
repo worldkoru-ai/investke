@@ -30,15 +30,18 @@ export async function POST(req: Request) {
     console.log("User inserted:", result);
 
     const userId = result.insertId;
-    // const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET || "secretkey", {
-    //   expiresIn: "7d",
-    // });
-
+    
+    // ✅ FIX: Match the login endpoint format
     const token = jwt.sign(
-  { userId: userId, email },  // ← Change "id" to "userId"
-  process.env.JWT_SECRET || "secretkey",
-  { expiresIn: "7d" }
-);
+      { 
+        userId: userId,  // ← Changed from "id" to "userId"
+        email: email,
+        name: name,
+        walletBalance: 0  // ← Add this for consistency
+      }, 
+      process.env.JWT_SECRET || "secretkey", 
+      { expiresIn: "7d" }
+    );
 
     const response = NextResponse.json({ message: "Account created successfully" });
     response.cookies.set("token", token, {
