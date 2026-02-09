@@ -11,6 +11,13 @@ export default function Login() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
+  useEffect(() => {
+    const clearSession = async () => {
+      await fetch("/api/logout", { method: "POST" });
+    };
+    clearSession();
+  }, []);
+
   const form = { email, password };
     const handleSubmit = async (e: any) => {
     e.preventDefault();

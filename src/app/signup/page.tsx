@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -12,6 +12,13 @@ export default function Register() {
     confirmPassword: "",
   });
     const router = useRouter();
+
+    useEffect(() => {
+    const clearSession = async () => {
+      await fetch("/api/logout", { method: "POST" });
+    };
+    clearSession();
+  }, []);
   
 
   const handleChange = (e: { target: { name: any; value: any; }; }) => {
