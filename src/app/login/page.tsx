@@ -25,7 +25,9 @@ export default function Login() {
     if (!res.ok) {
       return setError(data.error);
     }
-    router.push("/dashboard");
+    if (res.ok) {
+      router.push("/dashboard");
+    }
 
     console.log("Login successful:", data);
   };

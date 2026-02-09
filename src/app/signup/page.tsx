@@ -45,12 +45,6 @@ export default function Register() {
   }
 };
 
-
-  const handleGoogleSignup = () => {
-    console.log("Google signup clicked");
-    // TODO: connect with Google OAuth later
-  };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
@@ -114,17 +108,6 @@ export default function Register() {
           <div className="border-t border-gray-300 w-1/3"></div>
         </div>
 
-        {/* <button
-          onClick={handleGoogleSignup}
-          className="w-full flex items-center justify-center text-black gap-2 border border-gray-300 py-3 rounded-lg hover:bg-gray-100 transition-all"
-        >
-          <img
-            src="https://www.svgrepo.com/show/355037/google.svg"
-            alt="Google"
-            className="w-5 h-5 "
-          />
-          Continue with Google
-        </button> */}
 
         <p className="text-center text-gray-600 text-sm mt-6">
           Already have an account?{" "}
