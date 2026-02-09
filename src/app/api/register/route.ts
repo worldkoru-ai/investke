@@ -40,7 +40,6 @@ export async function POST(req: Request) {
         walletBalance: 0  // ← Add this for consistency
       }, 
       process.env.JWT_SECRET || "secretkey", 
-      { expiresIn: "7d" }
     );
 
     const response = NextResponse.json({ message: "Account created successfully" });
