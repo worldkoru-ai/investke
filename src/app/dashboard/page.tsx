@@ -577,7 +577,7 @@ const Modal = ({
                     onChange={() => setPaymentMethod("paystack")}
                     className="w-4 h-4 text-indigo-600"
                   />
-                  <span className="text-gray-700">Paystack</span>
+                  <span className="text-gray-700">Mobile Money</span>
                 </label>
               </div>
               {paymentMethod === "wallet" && user && (
