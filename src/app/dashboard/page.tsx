@@ -430,7 +430,7 @@ return (
       <div>
         <p className="text-gray-600 text-sm">Interest Yesterday</p>
         <p className="font-bold text-green-600">
-          Ksh. {Number(inv.yesterdayInterest || 0).toFixed(2)}
+              {/* Ksh. {Number(inv.yesterdayInterest || 0).toFixed(2)} */}
         </p>
       </div>
     </div>
