@@ -12,8 +12,15 @@ type Investment = {
   planName: string;
   amount: number;
   maturityDate: string;
-  currentInterest?: number;
-  expectedInterest?: number;
+  startDate: string;
+  currentInterest: number;
+  expectedInterest: number;
+  yesterdayInterest: number;  // ← Add this
+  currentValue: number;        // ← Add this
+  expectedValue: number;       // ← Add this
+  progressPercentage: number;  // ← Add this
+  daysElapsed: number;         // ← Add this
+  totalDays: number;           // ← Add this
 };
 
 type Withdrawal = {
@@ -430,7 +437,7 @@ return (
       <div>
         <p className="text-gray-600 text-sm">Interest Yesterday</p>
         <p className="font-bold text-green-600">
-              {/* Ksh. {Number(inv.yesterdayInterest || 0).toFixed(2)} */}
+              Ksh. {Number(inv.yesterdayInterest || 0).toFixed(2)}
         </p>
       </div>
     </div>

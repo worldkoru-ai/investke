@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { getDb, getPlanById } from "@/lib/db";
 import { calculateInvestmentInterest } from "@/lib/interestcalculation";
@@ -80,40 +79,31 @@ export async function GET(req: Request) {
       [userId, planId]
     );
 
-    const startDate = new Date();
-    const endDate = new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000);
-
     if (existingInvestments.length > 0) {
-      // INCREMENT existing investment
+      // TOP UP existing investment - simply add to principal
       const existing = existingInvestments[0];
       
-      // Calculate current interest on existing investment
-      const existingInterest = calculateInvestmentInterest({
-        amount: existing.amount,
+      const existingAmount = Number(existing.amount) || 0;
+      const newAmount = Number(amount) || 0;
+      const newPrincipal = existingAmount + newAmount;
+
+      // Recalculate expected interest with new principal
+      const newInterestCalc = calculateInvestmentInterest({
+        amount: newPrincipal,
         interestRate: plan.interestRate,
         startDate: new Date(existing.startDate),
         endDate: new Date(existing.endDate),
         compoundingPeriod: plan.compoundingPeriod,
       });
-
-      const existingAmount = Number(existing.amount) || 0;
-      const newAmount = Number(amount) || 0;
-      const interestAmount = Number(existingInterest.currentInterest) || 0;
-
-      const newPrincipal = existingAmount + interestAmount + newAmount;
-      const newPrincipalRounded = newPrincipal.toFixed(2);
       
       await db.query(
         `UPDATE investments 
         SET amount = ?, 
-            startDate = ?,
-            endDate = ?,
-            currentInterest = 0,
+            expectedInterest = ?,
             updatedAt = NOW()
         WHERE id = ?`,
-        [newPrincipalRounded, startDate, endDate, existing.id]
+        [newPrincipal.toFixed(2), newInterestCalc.expectedInterest, existing.id]
       );
-
 
       // Update user's total invested
       await db.query(
@@ -123,14 +113,20 @@ export async function GET(req: Request) {
 
       return NextResponse.json({
         status: true,
-        message: "Investment incremented successfully",
+        message: "Investment topped up successfully",
         userId,
         amountAdded: amount,
-        newTotal: newPrincipal,
-        type: "increment",
+        previousPrincipal: existingAmount,
+        newPrincipal: newPrincipal,
+        newExpectedInterest: newInterestCalc.expectedInterest,
+        endDate: existing.endDate,
+        type: "topup",
       });
     } else {
       // CREATE new investment
+      const startDate = new Date();
+      const endDate = new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000);
+      
       const interestCalc = calculateInvestmentInterest({
         amount,
         interestRate: plan.interestRate,
@@ -164,14 +160,13 @@ export async function GET(req: Request) {
         [amount, userId]
       );
 
-      
-
       return NextResponse.json({
         status: true,
         message: "Investment created successfully",
         userId,
         amountInvested: amount,
         expectedInterest: interestCalc.expectedInterest,
+        endDate,
         type: "new",
       });
     }

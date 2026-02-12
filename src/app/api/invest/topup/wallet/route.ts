@@ -59,80 +59,60 @@ export async function POST(req: Request) {
       [userId, planId]
     );
 
-    const startDate = new Date();
-    const endDate = new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000);
+    if (existingInvestments.length > 0) {
+      // TOP UP existing investment - simply add to principal
+      const existing = existingInvestments[0];
 
+      const existingAmount = Number(existing.amount) || 0;
+      const newAmount = Number(amount) || 0;
+      const newPrincipal = existingAmount + newAmount;
 
-      if (existingInvestments.length > 0) {
-        const existing = existingInvestments[0];
+      // Recalculate expected interest with new principal
+      const newInterestCalc = calculateInvestmentInterest({
+        amount: newPrincipal,
+        interestRate: plan.interestRate,
+        startDate: new Date(existing.startDate),
+        endDate: new Date(existing.endDate),
+        compoundingPeriod: plan.compoundingPeriod,
+      });
 
-        // Calculate current interest on existing investment up to today
-        const existingInterest = calculateInvestmentInterest({
-          amount: existing.amount,
-          interestRate: plan.interestRate,
-          startDate: new Date(existing.startDate),
-          endDate: new Date(),
-          compoundingPeriod: plan.compoundingPeriod,
-        });
+      await db.query(
+        `UPDATE investments 
+        SET amount = ?, 
+            expectedInterest = ?,
+            updatedAt = NOW()
+        WHERE id = ?`,
+        [
+          newPrincipal.toFixed(2),
+          newInterestCalc.expectedInterest,
+          existing.id
+        ]
+      );
 
-        // New principal = old principal + accrued interest + new top-up
-        const newPrincipal = Number(existing.amount) +
-                            Number(existingInterest.currentInterest) +
-                            Number(amount);
+      // Deduct from wallet and create transaction
+      await db.query("UPDATE users SET walletBalance = walletBalance - ? WHERE id = ?", [amount, userId]);
+      await db.query("UPDATE users SET totalInvested = totalInvested + ? WHERE id = ?", [amount, userId]);
+      await db.query(
+        `INSERT INTO transactions (userId, amount, type, status, createdAt) 
+        VALUES (?, ?, 'investment', 'completed', NOW())`,
+        [userId, amount]
+      );
 
-        // Keep the original startDate
-        const startDate = new Date(existing.startDate);
-
-        // Extend endDate based on plan duration from today
-        const endDate = new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000);
-
-        // Calculate expected interest for the new principal
-        const newInterestCalc = calculateInvestmentInterest({
-          amount: newPrincipal,
-          interestRate: plan.interestRate,
-          startDate,
-          endDate,
-          compoundingPeriod: plan.compoundingPeriod,
-        });
-
-        await db.query(
-          `UPDATE investments 
-          SET amount = ?, 
-              endDate = ?,
-              expectedInterest = ?,
-              updatedAt = NOW()
-          WHERE id = ?`,
-          [
-            newPrincipal.toFixed(2),
-            endDate,
-            newInterestCalc.expectedInterest,
-            existing.id
-          ]
-        );
-
-        // Deduct from wallet and create transaction as before
-        await db.query("UPDATE users SET walletBalance = walletBalance - ? WHERE id = ?", [amount, userId]);
-        await db.query("UPDATE users SET totalInvested = totalInvested + ? WHERE id = ?", [amount, userId]);
-        await db.query(
-          `INSERT INTO transactions (userId, amount, type, status, createdAt) 
-          VALUES (?, ?, 'investment', 'completed', NOW())`,
-          [userId, amount]
-        );
-
-        return NextResponse.json({
-          status: true,
-          message: "Investment topped up successfully from wallet",
-          amountAdded: amount,
-          previousPrincipal: existing.amount,
-          currentInterestRetained: existingInterest.currentInterest,
-          newPrincipal,
-          newExpectedInterest: newInterestCalc.expectedInterest,
-          type: "topup",
-        });
-      }
-
-    else {
+      return NextResponse.json({
+        status: true,
+        message: "Investment topped up successfully from wallet",
+        amountAdded: amount,
+        previousPrincipal: existingAmount,
+        newPrincipal,
+        newExpectedInterest: newInterestCalc.expectedInterest,
+        endDate: existing.endDate,
+        type: "topup",
+      });
+    } else {
       // CREATE new investment
+      const startDate = new Date();
+      const endDate = new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000);
+
       const interestCalc = calculateInvestmentInterest({
         amount,
         interestRate: plan.interestRate,
@@ -184,6 +164,8 @@ export async function POST(req: Request) {
         message: "Investment created successfully from wallet",
         amountInvested: amount,
         expectedInterest: interestCalc.expectedInterest,
+        startDate,
+        endDate,
         type: "new",
       });
     }

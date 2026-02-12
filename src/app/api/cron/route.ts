@@ -1,98 +1,4 @@
-// import mysql from "mysql2/promise";
-// import { NextRequest, NextResponse } from "next/server";
-
-// // Create MySQL connection pool
-// const pool = mysql.createPool({
-//   host: "localhost",
-//   user: "root",
-//   password: "toor",
-//   database: "investke",
-// });
-
-// // GET API to trigger interest update manually
-// export async function GET(req: NextRequest) {
-//   await updateDailyInterest();
-//   return NextResponse.json({ message: "Daily interest updated successfully" });
-// }
-
-
-// // Map compounding periods to periods per year
-// const periodsPerYear: Record<string, number> = {
-//   daily: 365,
-//   weekly: 52,
-//   monthly: 12,
-//   quarterly: 4,
-//   yearly: 1,
-// };
-
-
-// export async function updateDailyInterest() {
-//   try {
-//     // 1️⃣ Fetch all active investments with daily or monthly compounding
-//     const [investments] = await pool.query(
-//       `SELECT id, amount, currentInterest, interestRate, startDate, endDate, compoundingPeriod
-//        FROM investments
-//        WHERE status = 'active'`
-//     );
-
-//     const now = new Date();
-
-//     for (const inv of investments as any[]) {
-//       const principal = parseFloat(inv.amount);
-//       const current = parseFloat(inv.currentInterest);
-//       const rate = parseFloat(inv.interestRate) / 100;
-
-//       // 2️⃣ Calculate days passed and total duration
-//       const start = new Date(inv.startDate);
-//       const end = new Date(inv.endDate);
-
-//       const daysPassed = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-//       const totalDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-
-//       if (daysPassed <= 0) continue; // investment hasn't started yet
-
-//       // 3️⃣ Compute interest depending on compounding period
-//       let currentInterest = 0;
-//       let expectedInterest = 0;
-
-//       if (inv.compoundingPeriod === "daily") {
-//         // Daily compounding formula: A = P*(1 + r/365)^(daysPassed)
-//         const totalAmountNow = principal * Math.pow(1 + rate / 365, Math.min(daysPassed, totalDays));
-//         currentInterest = totalAmountNow - principal;
-
-//         const totalAmountEnd = principal * Math.pow(1 + rate / 365, totalDays);
-//         expectedInterest = totalAmountEnd - principal;
-//       } else if (inv.compoundingPeriod === "monthly") {
-//         const monthsPassed = Math.floor(daysPassed / 30);
-//         const totalMonths = Math.floor(totalDays / 30);
-
-//         const totalAmountNow = principal * Math.pow(1 + rate / 12, Math.min(monthsPassed, totalMonths));
-//         currentInterest = totalAmountNow - principal;
-
-//         const totalAmountEnd = principal * Math.pow(1 + rate / 12, totalMonths);
-//         expectedInterest = totalAmountEnd - principal;
-//       }
-
-//       // 4️⃣ Update DB
-//       await pool.query(
-//         `UPDATE investments SET currentInterest = ?, expectedInterest = ? WHERE id = ?`,
-//         [currentInterest.toFixed(2), expectedInterest.toFixed(2), inv.id]
-//       );
-
-//       console.log(
-//         `Investment ${inv.id}: Current Interest = ${currentInterest.toFixed(
-//           2
-//         )}, Expected Interest = ${expectedInterest.toFixed(2)}`
-//       );
-//     }
-
-//     console.log("Daily interest update complete.");
-//   } catch (err) {
-//     console.error("Error updating investment interests:", err);
-//   }
-// }
-
-
+// app/api/cron/update-interest/route.ts (or whatever your file is)
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { calculateInvestmentInterest } from "@/lib/interestcalculation";
@@ -106,56 +12,112 @@ export async function GET(req: Request) {
 
   try {
     const db = getDb();
+    const now = new Date();
+    const today = now.toISOString().split('T')[0]; // YYYY-MM-DD format
 
     // Get all active investments with their plan details
+    // NOTE: Your table is called 'plans', not 'investment_plans'
     const [investments]: any = await db.query(
-      `SELECT i.*, p.interestRate, p.compoundingPeriod 
+      `SELECT 
+        i.id,
+        i.userId,
+        i.amount,
+        i.startDate,
+        i.endDate,
+        i.compoundingPeriod,
+        i.status,
+        i.currentInterest as oldCurrentInterest,
+        COALESCE(i.interestRate, p.interestRate) as interestRate
        FROM investments i
-       JOIN investment_plans p ON i.planId = p.id
+       LEFT JOIN plans p ON i.planId = p.id
        WHERE i.status = 'active'`
     );
 
     let updated = 0;
-    const now = new Date();
+    let matured = 0;
+    let errors = 0;
 
     for (const investment of investments) {
-      const interest = calculateInvestmentInterest({
-        amount: investment.amount,
-        interestRate: investment.interestRate,
-        startDate: new Date(investment.startDate),
-        endDate: new Date(investment.endDate),
-        compoundingPeriod: investment.compoundingPeriod,
-      }, now);
+      try {
+        // Normalize compounding period
+        const normalizedPeriod = (investment.compoundingPeriod || 'daily').toLowerCase();
 
-      // Update current interest
-      await db.query(
-        `UPDATE investments 
-         SET currentInterest = ?,
-             expectedInterest = ?,
-             updatedAt = NOW()
-         WHERE id = ?`,
-        [interest.currentInterest, interest.expectedInterest, investment.id]
-      );
+        // Calculate current interest
+        const interestCalc = calculateInvestmentInterest({
+          amount: Number(investment.amount),
+          interestRate: Number(investment.interestRate),
+          startDate: new Date(investment.startDate),
+          endDate: new Date(investment.endDate),
+          compoundingPeriod: normalizedPeriod,
+        }, now);
 
-      // Check if investment has matured
-      if (now >= new Date(investment.endDate)) {
+        // Calculate today's interest earned (difference from yesterday)
+        const oldCurrentInterest = Number(investment.oldCurrentInterest) || 0;
+        const newCurrentInterest = interestCalc.currentInterest;
+        const todayInterestEarned = Math.max(0, newCurrentInterest - oldCurrentInterest);
+
+        // Update investment's current and expected interest
         await db.query(
           `UPDATE investments 
-           SET status = 'completed',
+           SET currentInterest = ?,
+               expectedInterest = ?,
                updatedAt = NOW()
            WHERE id = ?`,
-          [investment.id]
+          [newCurrentInterest, interestCalc.expectedInterest, investment.id]
         );
-      }
 
-      updated++;
+        // Log today's interest in the daily log
+        await db.query(
+          `INSERT INTO daily_interest_log 
+           (investmentId, calculationDate, principalAmount, interestEarned, totalValue)
+           VALUES (?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             principalAmount = VALUES(principalAmount),
+             interestEarned = VALUES(interestEarned),
+             totalValue = VALUES(totalValue),
+             createdAt = NOW()`,
+          [
+            investment.id,
+            today,
+            investment.amount,
+            todayInterestEarned,
+            interestCalc.currentValue
+          ]
+        );
+
+        // Check if investment has matured
+        if (now >= new Date(investment.endDate)) {
+          await db.query(
+            `UPDATE investments 
+             SET status = 'completed',
+                 updatedAt = NOW()
+             WHERE id = ?`,
+            [investment.id]
+          );
+          matured++;
+        }
+
+        updated++;
+
+      } catch (invErr: any) {
+        console.error(`Error processing investment ${investment.id}:`, invErr);
+        errors++;
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: `Updated ${updated} investments`,
+      message: `Daily interest calculation completed`,
+      stats: {
+        updated,
+        matured,
+        errors,
+        total: investments.length
+      },
       timestamp: now.toISOString(),
+      date: today
     });
+
   } catch (err: any) {
     console.error("CRON UPDATE ERROR:", err);
     return NextResponse.json(
@@ -164,4 +126,3 @@ export async function GET(req: Request) {
     );
   }
 }
-
