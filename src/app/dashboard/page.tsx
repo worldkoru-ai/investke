@@ -408,46 +408,50 @@ const InvestmentsTab = ({
         const isMatured = new Date() >= maturityDate;
         const daysRemaining = Math.ceil((maturityDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
-        return (
-          <div key={inv.id} className="bg-indigo-50 border p-4 rounded-lg flex flex-col gap-3 hover:shadow-md transition">
-            <div className="flex justify-between">
-              <div>
-                <h4 className="font-bold">{inv.planName}</h4>
-                <p className="text-sm">Principal: Ksh. {Number(inv.amount).toFixed(2)}</p>
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
-                {isMatured ? "Matured" : `${daysRemaining} days left`}
-              </span>
-            </div>
+return (
+  <div key={inv.id} className="bg-indigo-50 border p-4 rounded-lg flex flex-col gap-3 hover:shadow-md transition">
+    <div className="flex justify-between">
+      <div>
+        <h4 className="font-bold">{inv.planName}</h4>
+        <p className="text-sm text-gray-600">Investment Plan</p>
+      </div>
+      <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
+        {isMatured ? "Matured" : `${daysRemaining} days left`}
+      </span>
+    </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-gray-600 text-sm">Current Interest</p>
-                <p className="font-bold text-green-600">Ksh. {Number(inv.currentInterest || 0)?.toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm">Expected Interest</p>
-                <p className="font-bold">Ksh. {Number(inv.expectedInterest || 0)?.toFixed(2)}</p>
-              </div>
-            </div>
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <p className="text-gray-600 text-sm">Current Amount</p>
+        <p className="font-bold text-indigo-600">
+          Ksh. {(Number(inv.amount) + Number(inv.currentInterest || 0)).toFixed(2)}
+        </p>
+      </div>
+      <div>
+        <p className="text-gray-600 text-sm">Interest Yesterday</p>
+        <p className="font-bold text-green-600">
+          Ksh. {Number(inv.yesterdayInterest || 0).toFixed(2)}
+        </p>
+      </div>
+    </div>
 
-            <div className="flex flex-col md:flex-row gap-3 mt-2">
-              <button
-                onClick={() => onTopUp(inv)}
-                className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
-              >
-                <Plus size={18} />
-                Top Up Investment
-              </button>
+    <div className="flex flex-col md:flex-row gap-3 mt-2">
+      <button
+        onClick={() => onTopUp(inv)}
+        className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+      >
+        <Plus size={18} />
+        Top Up Investment
+      </button>
 
-              {isMatured && (
-                <button className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
-                  Complete & Withdraw All
-                </button>
-              )}
-            </div>
-          </div>
-        );
+      {isMatured && (
+        <button className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+          Complete & Withdraw All
+        </button>
+      )}
+    </div>
+  </div>
+);
       })}
     </div>
 );
