@@ -23,19 +23,17 @@ export async function POST(req: NextRequest) {
     const backMime = back.type;
 
     // ✅ Save directly to DB
-    await getDb().query(
-      `INSERT INTO user_verifications 
-        (userId, idType, idFront, idBack, idFrontMime, idBackMime, status)
-       VALUES (?, ?, ?, ?, ?, ?, 'pending')
-       ON DUPLICATE KEY UPDATE
-         idType = VALUES(idType),
-         idFront = VALUES(idFront),
-         idBack = VALUES(idBack),
-         idFrontMime = VALUES(idFrontMime),
-         idBackMime = VALUES(idBackMime),
-         status = 'pending'`,
-      [userId, idType, frontBuffer, backBuffer, frontMime, backMime]
-    );
+await getDb().query(
+  `INSERT INTO user_verifications 
+    (userId, idType, idFront, idBack, status)
+   VALUES (?, ?, ?, ?, 'pending')
+   ON DUPLICATE KEY UPDATE
+     idType = VALUES(idType),
+     idFront = VALUES(idFront),
+     idBack = VALUES(idBack),
+     status = 'pending'`,
+  [userId, idType, frontBuffer, backBuffer]
+);
 
     return NextResponse.json({
       success: true,
