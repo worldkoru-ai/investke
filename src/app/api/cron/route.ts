@@ -31,7 +31,7 @@ console.log("Expected:", `Bearer ${process.env.CRON_SECRET}`);
         i.currentInterest as oldCurrentInterest,
         COALESCE(i.interestRate, p.interestRate) as interestRate
        FROM investments i
-       LEFT JOIN plans p ON i.planId = p.id
+       LEFT JOIN investment_plans p ON i.planId = p.id
        WHERE i.status = 'active'`
     );
 
