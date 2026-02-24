@@ -8,6 +8,8 @@ export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");
   console.log("Auth Header:", authHeader);
 console.log("Expected:", `Bearer ${process.env.CRON_SECRET}`);
+
+
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -87,6 +89,14 @@ console.log("Expected:", `Bearer ${process.env.CRON_SECRET}`);
           ]
         );
 
+        console.log({
+  id: investment.id,
+  amount: investment.amount,
+  rate: investment.interestRate,
+  startDate: investment.startDate,
+  endDate: investment.endDate,
+});
+
         // Check if investment has matured
         if (now >= new Date(investment.endDate)) {
           await db.query(
@@ -106,6 +116,8 @@ console.log("Expected:", `Bearer ${process.env.CRON_SECRET}`);
         errors++;
       }
     }
+
+    
 
     return NextResponse.json({
       success: true,
