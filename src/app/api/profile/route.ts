@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { getDb } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
@@ -13,44 +11,30 @@ export async function POST(req: NextRequest) {
     const back = formData.get("back") as File;
 
     if (!userId || !idType || !front || !back) {
-      return NextResponse.json(
-        { error: "All fields are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
 
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    // ✅ Convert files to buffers
+    const frontBuffer = Buffer.from(await front.arrayBuffer());
+    const backBuffer = Buffer.from(await back.arrayBuffer());
 
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    // ✅ Optional: get MIME type
+    const frontMime = front.type;
+    const backMime = back.type;
 
-    // ✅ Save front image
-    const frontBytes = Buffer.from(await front.arrayBuffer());
-    const frontName = `${Date.now()}-front-${front.name}`;
-    const frontPath = path.join(uploadDir, frontName);
-    fs.writeFileSync(frontPath, frontBytes);
-
-    // ✅ Save back image
-    const backBytes = Buffer.from(await back.arrayBuffer());
-    const backName = `${Date.now()}-back-${back.name}`;
-    const backPath = path.join(uploadDir, backName);
-    fs.writeFileSync(backPath, backBytes);
-
-    const frontUrl = `/uploads/${frontName}`;
-    const backUrl = `/uploads/${backName}`;
-
-    // ✅ Save to DB
+    // ✅ Save directly to DB
     await getDb().query(
       `INSERT INTO user_verifications 
-        (userId, idType, idFrontUrl, idBackUrl, status)
-       VALUES (?, ?, ?, ?, 'pending')
+        (userId, idType, idFront, idBack, idFrontMime, idBackMime, status)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending')
        ON DUPLICATE KEY UPDATE
-       idType = VALUES(idType),
-       idFrontUrl = VALUES(idFrontUrl),
-       idBackUrl = VALUES(idBackUrl),
-       status = 'pending'`,
-      [userId, idType, frontUrl, backUrl]
+         idType = VALUES(idType),
+         idFront = VALUES(idFront),
+         idBack = VALUES(idBack),
+         idFrontMime = VALUES(idFrontMime),
+         idBackMime = VALUES(idBackMime),
+         status = 'pending'`,
+      [userId, idType, frontBuffer, backBuffer, frontMime, backMime]
     );
 
     return NextResponse.json({
@@ -60,9 +44,6 @@ export async function POST(req: NextRequest) {
 
   } catch (err: any) {
     console.error("UPLOAD ERROR:", err);
-    return NextResponse.json(
-      { error: "Upload failed", details: err.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Upload failed", details: err.message }, { status: 500 });
   }
 }
