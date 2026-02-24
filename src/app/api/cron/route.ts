@@ -6,6 +6,8 @@ import { calculateInvestmentInterest } from "@/lib/interestcalculation";
 export async function GET(req: Request) {
   // Verify cron secret for security
   const authHeader = req.headers.get("authorization");
+  console.log("Auth Header:", authHeader);
+console.log("Expected:", `Bearer ${process.env.CRON_SECRET}`);
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
