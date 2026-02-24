@@ -1,3 +1,4 @@
+// app/api/upload-verification/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
@@ -14,30 +15,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
 
-    // ✅ Convert files to buffers
+    // Convert files to buffers
     const frontBuffer = Buffer.from(await front.arrayBuffer());
     const backBuffer = Buffer.from(await back.arrayBuffer());
 
-    // ✅ Optional: get MIME type
-    const frontMime = front.type;
-    const backMime = back.type;
-
-    // ✅ Save directly to DB
-await getDb().query(
-  `INSERT INTO user_verifications 
-    (userId, idType, idFront, idBack, status)
-   VALUES (?, ?, ?, ?, 'pending')
-   ON DUPLICATE KEY UPDATE
-     idType = VALUES(idType),
-     idFront = VALUES(idFront),
-     idBack = VALUES(idBack),
-     status = 'pending'`,
-  [userId, idType, frontBuffer, backBuffer]
-);
+    // Save to DB (no MIME type needed)
+    await getDb().query(
+      `INSERT INTO user_verifications
+        (userId, idType, idFront, idBack, status)
+       VALUES (?, ?, ?, ?, 'pending')
+       ON DUPLICATE KEY UPDATE
+         idType = VALUES(idType),
+         idFront = VALUES(idFront),
+         idBack = VALUES(idBack),
+         status = 'pending'`,
+      [userId, idType, frontBuffer, backBuffer]
+    );
 
     return NextResponse.json({
       success: true,
-      message: "Verification uploaded successfully",
+      message: "Verification uploaded successfully"
     });
 
   } catch (err: any) {
