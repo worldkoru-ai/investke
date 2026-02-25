@@ -1,46 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
-  try {
-    // ✅ Get userId from cookie/session (or query if you're using that)
-    const userId = req.headers.get("x-user-id"); 
-    // If you already use /api/me with cookies, tell me — I’ll wire it properly.
+  const userId = req.nextUrl.searchParams.get("userId");
+  const type = req.nextUrl.searchParams.get("type"); // front or back
 
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const db = getDb();
-
-    // ✅ Get user
-    const [users]: any = await db.query(
-      `SELECT id, name, email, walletBalance, totalInvested, totalInterestEarned
-       FROM users WHERE id = ? LIMIT 1`,
-      [userId]
-    );
-
-    if (!users.length) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // ✅ Get verification
-    const [verifications]: any = await db.query(
-      `SELECT idType, idFrontUrl, idBackUrl, status
-       FROM user_verifications WHERE userId = ? LIMIT 1`,
-      [userId]
-    );
-
-    return NextResponse.json({
-      user: users[0],
-      verification: verifications[0] || null,
-    });
-
-  } catch (err: any) {
-    console.error("PROFILE FETCH ERROR:", err);
-    return NextResponse.json(
-      { error: "Failed to load profile" },
-      { status: 500 }
-    );
+  if (!userId || !type) {
+    return new Response("Missing parameters", { status: 400 });
   }
+
+  const db = getDb();
+
+  const [rows]: any = await db.query(
+    `SELECT idFront, idBack
+     FROM user_verifications
+     WHERE userId = ? LIMIT 1`,
+    [userId]
+  );
+
+  if (!rows.length) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  const imageBuffer =
+    type === "front" ? rows[0].idFront : rows[0].idBack;
+
+  if (!imageBuffer) {
+    return new Response("Image not found", { status: 404 });
+  }
+
+  return new Response(imageBuffer, {
+    headers: {
+      "Content-Type": "image/jpeg", // adjust if needed
+      "Cache-Control": "private, max-age=3600",
+    },
+  });
 }
