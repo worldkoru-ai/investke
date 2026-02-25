@@ -67,33 +67,47 @@ export async function getUserVerification(userId: string) {
   const [rows]: any = await db.query(
     `SELECT 
         idType, 
-        idFrontUrl, 
-        idBackUrl, 
-        status 
+        status
      FROM user_verifications 
      WHERE userId = ? 
      LIMIT 1`,
     [userId]
   );
 
-  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return null;
+  }
+
+  return {
+    idType: rows[0].idType,
+    status: rows[0].status,
+
+    // 👇 image endpoints (served via API)
+    idFrontUrl: `/api/verification/image?userId=${userId}&type=front`,
+    idBackUrl: `/api/verification/image?userId=${userId}&type=back`,
+  };
 }
 
 export async function saveUserVerification(data: {
   userId: string;
   idType: string;
-  idFrontUrl: string;
-  idBackUrl: string;
+  idFront: Buffer;
+  idBack: Buffer;
 }) {
   const db = getDb();
 
-  const { userId, idType, idFrontUrl, idBackUrl } = data;
+  const { userId, idType, idFront, idBack } = data;
 
   await db.query(
     `INSERT INTO user_verifications 
-     (userId, idType, idFrontUrl, idBackUrl, status) 
-     VALUES (?, ?, ?, ?, 'pending')`,
-    [userId, idType, idFrontUrl, idBackUrl]
+     (userId, idType, idFront, idBack, status) 
+     VALUES (?, ?, ?, ?, 'pending')
+     ON DUPLICATE KEY UPDATE
+       idType = VALUES(idType),
+       idFront = VALUES(idFront),
+       idBack = VALUES(idBack),
+       status = 'pending'`,
+    [userId, idType, idFront, idBack]
   );
 }
 
