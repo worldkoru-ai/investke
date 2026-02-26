@@ -149,47 +149,47 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleApproveVerification = async (verificationId: string) => {
-    try {
-      const res = await fetch("/api/admin/verifications/approve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ verificationId }),
-      });
+const handleApproveVerification = async (verificationId: string) => {
+  try {
+    const res = await fetch("/api/admin/verifications/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ verificationId, approve: true }), // ✅ add approve: true
+    });
 
-      if (res.ok) {
-        alert("User verified successfully!");
-        loadAdminData();
-      } else {
-        const data = await res.json();
-        alert(data.error);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Verification approval failed");
+    if (res.ok) {
+      alert("User verified successfully!");
+      loadAdminData();
+    } else {
+      const data = await res.json();
+      alert(data.error);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Verification approval failed");
+  }
+};
 
-  const handleRejectVerification = async (verificationId: string) => {
-    try {
-      const res = await fetch("/api/admin/verifications/reject", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ verificationId }),
-      });
+const handleRejectVerification = async (verificationId: string) => {
+  try {
+    const res = await fetch("/api/admin/verifications/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ verificationId, approve: false }), // ✅ add approve: false
+    });
 
-      if (res.ok) {
-        alert("Verification rejected!");
-        loadAdminData();
-      } else {
-        const data = await res.json();
-        alert(data.error);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Verification rejection failed");
+    if (res.ok) {
+      alert("Verification rejected!");
+      loadAdminData();
+    } else {
+      const data = await res.json();
+      alert(data.error);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Verification rejection failed");
+  }
+};
 
   if (loading) {
     return (
