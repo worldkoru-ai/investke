@@ -128,19 +128,6 @@ export default function ProfilePage() {
                     {verification.status.toUpperCase()}
                   </span>
 
-                  <p className="mb-2 text-black"><b>ID Type:</b> {verification.idType}</p>
-
-                  <div className="grid md:grid-cols-2 gap-4 mt-4">
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Front</p>
-                      <img src={verification.idFrontUrl} className="w-full rounded border" />
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Back</p>
-                      <img src={verification.idBackUrl} className="w-full rounded border" />
-                    </div>
-                  </div>
                 </>
               )}
             </div>
