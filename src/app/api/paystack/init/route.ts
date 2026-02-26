@@ -16,11 +16,6 @@ function makeReference() {
   return `ref_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-/**
- * POST /api/paystack/init
- * Body: { email, amount, callback_url?, userId, metadata?, reference? }
- * Returns Paystack initialize response (authorization_url etc.)
- */
 export async function POST(req: Request) {
   if (!PAYSTACK_KEY) {
     return NextResponse.json(

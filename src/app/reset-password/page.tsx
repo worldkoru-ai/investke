@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token"); // token from URL
+  const token = searchParams.get("token");
   const router = useRouter();
 
   const [password, setPassword] = useState("");

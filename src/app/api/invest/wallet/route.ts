@@ -43,6 +43,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Investment successful", walletBalance: user.walletBalance - amount });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+      return NextResponse.json(
+    { error: "Service unavailable. Please try again later." },
+    { status: 503 }
+  );
   }
 }

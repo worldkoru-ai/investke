@@ -56,20 +56,6 @@ export async function POST(req: Request) {
   const amountKobo = Math.round(Number(amount) * 100);
   const txReference = reference ?? makeReference();
 
-  // ✅ Metadata must include userId for verify
-  // const payload = {
-  //   email,
-  //   amount: amountKobo,
-  //   callback_url,
-  //   reference: txReference,
-  //   metadata: {
-  //     ...(metadata || {}), // include any extra metadata
-  //     userId,
-  //     planId,
-  //     type: "investment",
-      
-  //   },
-  // };
 
   const payload = {
   email,
