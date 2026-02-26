@@ -213,7 +213,7 @@ const features = [
                 </div>
 
                 <button
-                  onClick={() => router.push('/Invest')}
+                  onClick={() => router.push('/login')}
                   className="w-full bg-white text-gray-900 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-all"
                 >
                   Invest Now
@@ -223,7 +223,7 @@ const features = [
           </div>
 
           <button
-            onClick={() => router.push('/Invest')}
+            onClick={() => router.push('/login')}
             className="mt-10 text-indigo-600 font-semibold px-8 py-3 rounded-lg border-2 border-indigo-600 hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2 mx-auto"
           >
             View All Plans <ArrowRight size={20} />
