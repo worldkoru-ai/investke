@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
+const REQUIRES_BACK = ["National ID"];
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -9,17 +11,21 @@ export async function POST(req: NextRequest) {
     const userId = formData.get("userId") as string;
     const idType = formData.get("idType") as string;
     const front = formData.get("front") as File;
-    const back = formData.get("back") as File;
+    const back = formData.get("back") as File | null;
 
-    if (!userId || !idType || !front || !back) {
+    if (!userId || !idType || !front) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+    }
+
+    // Enforce back side only for ID types that require it
+    if (REQUIRES_BACK.includes(idType) && !back) {
+      return NextResponse.json({ error: "Back side is required for " + idType }, { status: 400 });
     }
 
     // Convert files to buffers
     const frontBuffer = Buffer.from(await front.arrayBuffer());
-    const backBuffer = Buffer.from(await back.arrayBuffer());
+    const backBuffer = back ? Buffer.from(await back.arrayBuffer()) : null;
 
-    // Save to DB (no MIME type needed)
     await getDb().query(
       `INSERT INTO user_verifications
         (userId, idType, idFront, idBack, status)
