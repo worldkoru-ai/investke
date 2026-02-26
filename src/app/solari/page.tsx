@@ -461,10 +461,10 @@ const VerificationsTab = ({ verifications, onApprove, onReject }: any) => (
             <td className="px-6 py-4 whitespace-nowrap">{v.userEmail}</td>
             <td className="px-6 py-4 whitespace-nowrap">{v.idType}</td>
             <td className="px-6 py-4 whitespace-nowrap">
-              {v.idFront ? <img src={`data:image/jpeg;base64,${v.idFront}`} className="w-24 h-16 object-contain" /> : "N/A"}
+              {v.idFront ? <img src={v.idFront} className="w-24 h-16 object-contain border rounded" /> : "N/A"}
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
-              {v.idBack ? <img src={`data:image/jpeg;base64,${v.idBack}`} className="w-24 h-16 object-contain" /> : "N/A"}
+              {v.idBack ? <img src={v.idBack} className="w-24 h-16 object-contain border rounded" /> : "N/A"}
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               <span className={`px-2 py-1 rounded text-xs ${
