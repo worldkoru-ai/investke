@@ -10,10 +10,20 @@ export async function GET(req: NextRequest) {
     const db = getDb();
     const [withdrawals]: any = await db.query(`
       SELECT 
-        w.id, w.userId, w.amount, w.status, w.method, w.createdAt,
-        u.name as userName, u.email as userEmail
+        w.id, 
+        w.userId, 
+        w.amount, 
+        w.status, 
+        w.createdAt,
+        u.name AS userName, 
+        u.email AS userEmail,
+        u.withdrawalMethod AS method,
+        u.mobileProvider,
+        u.mobileNumber,
+        u.bankName,
+        u.bankAccountName,
+        u.bankAccountNumber
       FROM withdrawals w
-      
       LEFT JOIN users u ON w.userId = u.id
       ORDER BY w.createdAt DESC
     `);
@@ -21,6 +31,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ withdrawals }, { status: 200 });
   } catch (error: any) {
     console.error("Admin withdrawals fetch error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Service unavailable" }, { status: 500 });
   }
 }

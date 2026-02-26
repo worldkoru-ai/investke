@@ -330,17 +330,29 @@ const WithdrawalsTab = ({ withdrawals, onApprove, onReject }: any) => (
           <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">User</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Email</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Amount</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Withdrawal Method</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Status</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Date</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Actions</th>
         </tr>
       </thead>
       <tbody className="bg-white text-black divide-y divide-gray-200">
-        {withdrawals.map((withdrawal: Withdrawal) => (
+        {withdrawals.map((withdrawal: any) => (
           <tr key={withdrawal.id}>
             <td className="px-6 py-4 whitespace-nowrap">{withdrawal.userName}</td>
             <td className="px-6 py-4 whitespace-nowrap">{withdrawal.userEmail}</td>
             <td className="px-6 py-4 whitespace-nowrap">Ksh {withdrawal.amount.toLocaleString()}</td>
+            
+            <td className="px-6 py-4 whitespace-nowrap">
+              {withdrawal.method === "mobile" ? (
+                <span>{withdrawal.mobileProvider || "Mobile"} - {withdrawal.mobileNumber || "N/A"}</span>
+              ) : withdrawal.method === "bank" ? (
+                <span>{withdrawal.bankName || "Bank"} - {withdrawal.bankAccountName || "N/A"} ({withdrawal.bankAccountNumber || "N/A"})</span>
+              ) : (
+                <span>{withdrawal.method || "N/A"}</span>
+              )}
+            </td>
+            
             <td className="px-6 py-4 whitespace-nowrap">
               <span className={`px-2 py-1 rounded text-xs ${
                 withdrawal.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -350,7 +362,9 @@ const WithdrawalsTab = ({ withdrawals, onApprove, onReject }: any) => (
                 {withdrawal.status}
               </span>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">{formatDateTime(withdrawal.createdAt)}</td>
+            
+            <td className="px-6 py-4 whitespace-nowrap">{new Date(withdrawal.createdAt).toLocaleDateString()}</td>
+            
             <td className="px-6 py-4 whitespace-nowrap">
               {withdrawal.status === 'pending' && (
                 <div className="flex gap-2">
