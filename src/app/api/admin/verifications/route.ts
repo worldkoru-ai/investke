@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
       ORDER BY uv.createdAt DESC
     `);
 
-
     return NextResponse.json({ verifications }, { status: 200 });
   } catch (err: any) {
     console.error("Fetch verifications error:", err);
