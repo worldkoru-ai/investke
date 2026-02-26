@@ -114,9 +114,9 @@ export async function GET(req: Request) {
 
   } catch (err: any) {
     console.error("VERIFY ERROR:", err);
-    return NextResponse.json(
-      { error: "Verification failed", details: err.message },
-      { status: 500 }
-    );
+      return NextResponse.json(
+    { error: "Service unavailable. Please try again later." },
+    { status: 503 }
+  );
   }
 }

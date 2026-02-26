@@ -22,9 +22,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("WITHDRAWAL UPDATE ERROR:", err.message);
-    return NextResponse.json(
-      { error: "Failed to update withdrawal details" },
-      { status: 500 }
-    );
+      return NextResponse.json(
+    { error: "Service unavailable. Please try again later." },
+    { status: 503 }
+  );
   }
 }

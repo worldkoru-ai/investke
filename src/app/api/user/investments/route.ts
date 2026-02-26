@@ -65,9 +65,9 @@ export async function GET(req: Request) {
 
   } catch (err: any) {
     console.error("FETCH INVESTMENTS ERROR:", err);
-    return NextResponse.json(
-      { error: "Failed to fetch investments", details: err.message },
-      { status: 500 }
-    );
+      return NextResponse.json(
+    { error: "Service unavailable. Please try again later." },
+    { status: 503 }
+  );
   }
 }

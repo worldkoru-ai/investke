@@ -15,6 +15,9 @@ export async function POST() {
 
     return NextResponse.json({ message: "Logged out successfully" });
   } catch (error) {
-    return NextResponse.json({ error: "Logout failed" }, { status: 500 });
+          return NextResponse.json(
+    { error: "Service unavailable. Please try again later." },
+    { status: 503 }
+  );
   }
 }

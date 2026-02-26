@@ -39,6 +39,6 @@ export async function POST(req: NextRequest) {
 
   } catch (err: any) {
     console.error("UPLOAD ERROR:", err);
-    return NextResponse.json({ error: "Upload failed", details: err.message }, { status: 500 });
+    return NextResponse.json({ error: "Service unavailable. Please try again later." }, { status: 503 });
   }
 }

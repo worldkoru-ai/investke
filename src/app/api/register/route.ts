@@ -35,6 +35,9 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("Signup route error:", error);
-    return NextResponse.json({ error: error.message || "Server error" }, { status: 500 });
+      return NextResponse.json(
+    { error: "Service unavailable. Please try again later." },
+    { status: 503 }
+  );
   }
 }

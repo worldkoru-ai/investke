@@ -10,6 +10,9 @@ export async function GET() {
     return NextResponse.json({ plans: rows }, { status: 200 });
   } catch (err: any) {
     console.error("GET /api/plans error:", err);
-    return NextResponse.json({ error: "Failed to load plans" }, { status: 500 });
+      return NextResponse.json(
+    { error: "Service unavailable. Please try again later." },
+    { status: 503 }
+  );
   }
 }

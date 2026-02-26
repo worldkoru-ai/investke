@@ -171,9 +171,9 @@ export async function POST(req: Request) {
     }
   } catch (err: any) {
     console.error("WALLET INVESTMENT ERROR:", err);
-    return NextResponse.json(
-      { error: "Investment failed", details: err.message },
-      { status: 500 }
-    );
+  return NextResponse.json(
+    { error: "Service unavailable. Please try again later." },
+    { status: 503 }
+  );
   }
 }

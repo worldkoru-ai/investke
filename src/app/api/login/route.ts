@@ -43,8 +43,14 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (error: any) {
-    console.error("Login error:", error);
-    return NextResponse.json({ error: error.message || "Server error" }, { status: 500 });
-  }
+  }catch (error: any) {
+  // Log full error on server for debugging
+  console.error("Login error:", error);
+
+  // Return a safe, generic message to the client
+  return NextResponse.json(
+    { error: "Service unavailable. Please try again later." },
+    { status: 503 }
+  );
+}
 }
