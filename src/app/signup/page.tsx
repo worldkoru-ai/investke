@@ -23,6 +23,11 @@ export default function Register() {
 
   const handleChange = (e: { target: { name: any; value: any; }; }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+      setFormData((prev) => ({
+    ...prev,
+    [e.target.name]: e.target.name === "email" ? e.target.value.toLowerCase() : e.target.value,
+  }));
   };
 
 
