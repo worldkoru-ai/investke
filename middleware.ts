@@ -4,19 +4,20 @@ import type { NextRequest } from "next/server";
 export function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
 
-  const protectedRoutes = ["/dashboard", "/invest", "/withdraw", "/deposit"];
+  const { pathname } = req.nextUrl;
 
-  const isProtected = protectedRoutes.some((route) =>
-    req.nextUrl.pathname.startsWith(route)
-  );
-
-  // Redirect to login if trying to access protected route without token
-  if (isProtected && !token) {
+  // Protected routes
+  if (!token && (
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/Invest") ||
+    pathname.startsWith("/withdraw") ||
+    pathname.startsWith("/deposit")
+  )) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // Prevent logged-in users from visiting login/register page
-  if (token && (req.nextUrl.pathname === "/login" || req.nextUrl.pathname === "/signup")) {
+  // Prevent logged-in users from visiting login/signup
+  if (token && (pathname === "/login" || pathname === "/signup")) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
@@ -31,5 +32,5 @@ export const config = {
     "/deposit/:path*",
     "/login",
     "/signup",
-  ]
+  ],
 };
