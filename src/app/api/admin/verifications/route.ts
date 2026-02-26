@@ -17,7 +17,14 @@ export async function GET(req: NextRequest) {
       ORDER BY uv.created_at DESC
     `);
 
-    return NextResponse.json({ verifications }, { status: 200 });
+    // Convert BLOBs to Base64 so the frontend can render images
+    const verificationsWithImages = verifications.map((v: any) => ({
+      ...v,
+      idFront: v.idFront ? `data:image/jpeg;base64,${Buffer.from(v.idFront).toString('base64')}` : null,
+      idBack: v.idBack ? `data:image/jpeg;base64,${Buffer.from(v.idBack).toString('base64')}` : null,
+    }));
+
+    return NextResponse.json({ verifications: verificationsWithImages }, { status: 200 });
   } catch (err: any) {
     console.error("Fetch verifications error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
