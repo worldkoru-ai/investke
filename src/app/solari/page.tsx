@@ -497,52 +497,52 @@ const InvestmentsTab = ({ investments }: { investments: Investment[] }) => (
 );
 
 // ===== Verifications Tab =====
-const VerificationsTab = ({ verifications, onApprove, onReject, onClickImage }: any) => (
+const VerificationsTab = ({ verifications, onApprove, onReject,  onClickImage }: any) => (
   <div className="overflow-x-auto">
     <table className="min-w-full">
       <thead className="bg-gray-50">
         <tr>
-          <th>User</th>
-          <th>Email</th>
-          <th>ID Type</th>
-          <th>Front</th>
-          <th>Back</th>
-          <th>Status</th>
-          <th>Actions</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">User</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Email</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">ID Type</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Front</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Back</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Status</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase">Actions</th>
         </tr>
       </thead>
-      <tbody className="bg-white divide-y divide-gray-200">
+      <tbody className="bg-white text-black divide-y divide-gray-200">
         {verifications.map((v: Verification) => (
           <tr key={v.id}>
-            <td>{v.userName}</td>
-            <td>{v.userEmail}</td>
-            <td>{v.idType}</td>
-            <td>
+            <td className="px-6 py-4 whitespace-nowrap">{v.userName}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{v.userEmail}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{v.idType}</td>
+            <td className="px-6 py-4 whitespace-nowrap">
               {v.idFront ? (
                 <img
                   src={`data:image/jpeg;base64,${v.idFront}`}
                   className="w-24 h-16 object-contain border rounded cursor-pointer"
-                  onClick={() => onClickImage(v.idFront)} // now defined
+                  onClick={() => onClickImage(v.idFront)} // ✅ use the prop
                 />
               ) : "N/A"}
             </td>
-            <td>
+            <td className="px-6 py-4 whitespace-nowrap">
               {v.idBack ? (
                 <img
                   src={`data:image/jpeg;base64,${v.idBack}`}
                   className="w-24 h-16 object-contain border rounded cursor-pointer"
-                  onClick={() => onClickImage(v.idBack)} // now defined
+                  onClick={() => onClickImage(v.idBack)} // ✅ use the prop
                 />
               ) : "N/A"}
             </td>
-            <td>
+            <td className="px-6 py-4 whitespace-nowrap">
               <span className={`px-2 py-1 rounded text-xs ${
                 v.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                 v.status === 'approved' ? 'bg-green-100 text-green-800' :
                 'bg-red-100 text-red-800'
               }`}>{v.status}</span>
             </td>
-            <td>
+            <td className="px-6 py-4 whitespace-nowrap">
               {v.status === 'pending' && (
                 <div className="flex gap-2">
                   <button onClick={() => onApprove(v.id)} className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">Approve</button>
@@ -556,4 +556,5 @@ const VerificationsTab = ({ verifications, onApprove, onReject, onClickImage }: 
     </table>
   </div>
 );
+
 
