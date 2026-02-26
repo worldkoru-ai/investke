@@ -1,4 +1,3 @@
-// app/api/admin/verifications/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/adminAuth";
 import { getDb } from "@/lib/db";
@@ -17,6 +16,7 @@ export async function GET(req: NextRequest) {
       WHERE uv.status = 'pending'
       ORDER BY uv.createdAt DESC
     `);
+
 
     return NextResponse.json({ verifications }, { status: 200 });
   } catch (err: any) {
