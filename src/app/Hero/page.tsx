@@ -72,7 +72,7 @@ export default function Hero() {
           </button>
 
           <button 
-            onClick={() => router.push('/invest')}
+            onClick={() => router.push('/Invest')}
             className="border-2 border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white hover:text-indigo-700 transition-all transform hover:scale-105"
           >
             View Investment Plans
