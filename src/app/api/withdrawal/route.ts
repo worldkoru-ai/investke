@@ -14,9 +14,9 @@ export async function POST(req: Request) {
 
     const db = getDb();
 
-    // ✅ 1. Get user wallet balance
+    // ✅ 1. Get user wallet balance and verification status
     const [users]: any = await db.query(
-      "SELECT walletBalance FROM users WHERE id = ? LIMIT 1",
+      "SELECT walletBalance, isVerified FROM users WHERE id = ? LIMIT 1",
       [userId]
     );
 
@@ -24,32 +24,41 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const walletBalance = users[0].walletBalance;
+    const user = users[0];
 
-    if (walletBalance < amount) {
+    // ✅ 2. Check if user is verified
+    if (!user.isVerified) {
+      return NextResponse.json(
+        { error: "Your account must be verified by admin before withdrawing." },
+        { status: 403 }
+      );
+    }
+
+    // ✅ 3. Check wallet balance
+    if (user.walletBalance < amount) {
       return NextResponse.json(
         { error: "Insufficient wallet balance" },
         { status: 400 }
       );
     }
 
-    // ✅ 2. Start DB Transaction
+    // ✅ 4. Start DB Transaction
     await db.query("START TRANSACTION");
 
-    // ✅ 3. Deduct wallet
+    // ✅ 5. Deduct wallet
     await db.query(
       "UPDATE users SET walletBalance = walletBalance - ? WHERE id = ?",
       [amount, userId]
     );
 
-    // ✅ 4. Log withdrawal
+    // ✅ 6. Log withdrawal
     await db.query(
       `INSERT INTO withdrawals (userId, amount, method, status, reason)
        VALUES (?, ?, 'wallet', 'pending', ?)`,
       [userId, amount, reason || "Wallet withdrawal"]
     );
 
-    // ✅ 5. Commit transaction
+    // ✅ 7. Commit transaction
     await db.query("COMMIT");
 
     return NextResponse.json({
@@ -67,8 +76,8 @@ export async function POST(req: Request) {
     } catch {}
 
     return NextResponse.json(
-      { error: "Withdrawal failed", details: err.message },
-      { status: 500 }
+      { error: "Service unavailable. Please try again later." },
+      { status: 503 }
     );
   }
 }
