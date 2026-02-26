@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       FROM user_verifications uv
       JOIN users u ON uv.userId = u.id
       WHERE uv.status = 'pending'
-      ORDER BY uv.createdAt DESC
+      ORDER BY uv.created_at DESC
     `);
 
     return NextResponse.json({ verifications }, { status: 200 });
