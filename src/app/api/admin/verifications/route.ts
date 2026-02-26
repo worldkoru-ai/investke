@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   try {
     const db = getDb();
     const [verifications]: any = await db.query(`
-      SELECT uv.id, uv.userId, uv.idType, uv.status, uv.createdAt,
+      SELECT uv.id, uv.userId, uv.idType, uv.status, uv.created_at AS createdAt,
              u.name AS userName, u.email AS userEmail
       FROM user_verifications uv
       JOIN users u ON uv.userId = u.id
