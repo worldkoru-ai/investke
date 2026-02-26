@@ -227,7 +227,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tabs */}
         <div className="bg-white rounded-lg shadow">
           <div className="border-b">
             <div className="flex gap-4 p-4">
