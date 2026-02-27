@@ -70,6 +70,15 @@ console.log("Expected:", `Bearer ${process.env.CRON_SECRET}`);
           [newCurrentInterest, interestCalc.expectedInterest, investment.id]
         );
 
+        await db.query(
+          `UPDATE users 
+            SET totalInterestEarned = totalInterestEarned + ?,
+                updatedAt = NOW()
+            WHERE id = ?`,
+          [newCurrentInterest, investment.userId]
+        );
+
+
         // Log today's interest in the daily log
         await db.query(
           `INSERT INTO daily_interest_log 
