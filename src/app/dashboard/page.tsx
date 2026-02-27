@@ -64,7 +64,6 @@ export default function Dashboard() {
   const [amount, setAmount] = useState("");
   const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null);
   const [activeTab, setActiveTab] = useState<"investments" | "withdrawals" | "transactions">("investments");
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     loadDashboard();
@@ -128,40 +127,37 @@ export default function Dashboard() {
       createdAt: tx.createdAt || tx.created_at || new Date().toISOString()
     }));
 
- const handleWalletWithdrawalRequest = async (amount: number) => {
-  try {
-    if (!user?.id) {
-      alert("User not loaded yet.");
-      return;
+  const handleWalletWithdrawalRequest = async (amount: number) => {
+    try {
+      if (!user?.id) {
+        alert("User not loaded yet.");
+        return;
+      }
+
+      const res = await fetch("/api/withdrawal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          amount,
+          reason: "User withdrawal"
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error);
+        return;
+      }
+
+      alert("Withdrawal request submitted!");
+      await fetchUserData();
+    } catch (err) {
+      console.error(err);
+      alert("Withdrawal failed");
     }
+  };
 
-    const res = await fetch("/api/withdrawal", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: user.id,
-        amount,
-        reason: "User withdrawal",
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error);
-      return;
-    }
-
-    await fetchUserData();
-
-    setIsModalOpen(false); // ✅ close modal
-    router.push("/dashboard");
-
-  } catch (err) {
-    console.error(err);
-    alert("Withdrawal failed");
-  }
-};
   const handleConfirmTopup = async () => {
     if (!amount) return alert("Enter an amount");
     if (!user?.id || !user?.email) return alert("User not loaded.");
