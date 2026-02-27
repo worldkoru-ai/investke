@@ -127,37 +127,43 @@ export default function Dashboard() {
       createdAt: tx.createdAt || tx.created_at || new Date().toISOString()
     }));
 
-  const handleWalletWithdrawalRequest = async (amount: number) => {
-    try {
-      if (!user?.id) {
-        alert("User not loaded yet.");
-        return;
-      }
-
-      const res = await fetch("/api/withdrawal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          amount,
-          reason: "User withdrawal"
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.error);
-        return;
-      }
-
-      alert("Withdrawal request submitted!");
-      await fetchUserData();
-    } catch (err) {
-      console.error(err);
-      alert("Withdrawal failed");
+const handleWalletWithdrawalRequest = async (amount: number) => {
+  try {
+    if (!user?.id) {
+      alert("User not loaded yet.");
+      return;
     }
-  };
 
+    const res = await fetch("/api/withdrawal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: user.id,
+        amount,
+        reason: "User withdrawal"
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error);
+      return;
+    }
+
+    alert("Withdrawal request submitted!");
+
+    await fetchUserData();
+
+    // ✅ CLOSE MODAL HERE
+    setModalType(null);
+    setAmount("");
+
+  } catch (err) {
+    console.error(err);
+    alert("Withdrawal failed");
+  }
+};
   const handleConfirmTopup = async () => {
     if (!amount) return alert("Enter an amount");
     if (!user?.id || !user?.email) return alert("User not loaded.");
