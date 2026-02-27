@@ -72,8 +72,7 @@ console.log("Expected:", `Bearer ${process.env.CRON_SECRET}`);
 
         await db.query(
           `UPDATE users 
-            SET totalInterestEarned = totalInterestEarned + ?,
-                updatedAt = NOW()
+            SET totalInterestEarned = totalInterestEarned + ?
             WHERE id = ?`,
           [newCurrentInterest, investment.userId]
         );
