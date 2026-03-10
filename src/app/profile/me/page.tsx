@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import NavBar from "@/app/NavBar/page";
 import {
@@ -118,83 +118,41 @@ function Field({
   );
 }
 
-// ── Fixed OTP input: individual ref-based digit boxes ──
+// ── Simple, cross-browser OTP input ──
 function OtpInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const inputs = useRef<(HTMLInputElement | null)[]>([]);
-  const digits = value.padEnd(6, "").split("").slice(0, 6);
-
-  const handleChange = (i: number, v: string) => {
-    const d = v.replace(/\D/g, "").slice(-1);
-    const next = [...digits];
-    next[i] = d;
-    onChange(next.join(""));
-    if (d && i < 5) inputs.current[i + 1]?.focus();
-  };
-
-  const handleKeyDown = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace") {
-      if (digits[i]) {
-        const next = [...digits];
-        next[i] = "";
-        onChange(next.join(""));
-      } else if (i > 0) {
-        inputs.current[i - 1]?.focus();
-        const next = [...digits];
-        next[i - 1] = "";
-        onChange(next.join(""));
-      }
-      e.preventDefault();
-    } else if (e.key === "ArrowLeft" && i > 0) {
-      inputs.current[i - 1]?.focus();
-    } else if (e.key === "ArrowRight" && i < 5) {
-      inputs.current[i + 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    onChange(pasted.padEnd(6, "").slice(0, 6));
-    const focusAt = Math.min(pasted.length, 5);
-    inputs.current[focusAt]?.focus();
-  };
-
-  // Auto-focus first box when component mounts
-  useEffect(() => {
-    const timer = setTimeout(() => inputs.current[0]?.focus(), 50);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
-    <div className="flex gap-2.5 justify-center">
-      {Array.from({ length: 6 }).map((_, i) => {
-        const isCurrent = value.length === i;
-        const hasDig = !!digits[i];
-        return (
-          <input
+    <div className="flex flex-col items-center gap-3">
+      <input
+        type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        maxLength={6}
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
+        placeholder="000000"
+        autoFocus
+        className="w-52 text-center text-3xl font-bold tracking-[0.5em] rounded-xl outline-none transition-all"
+        style={{
+          border: "2px solid #cbd5e1",
+          padding: "12px 8px 12px 20px",
+          color: "#1e40af",
+          background: "#f0f6ff",
+          letterSpacing: "0.5em",
+          fontFamily: "monospace",
+        }}
+        onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+        onBlur={(e)  => (e.target.style.borderColor = "#cbd5e1")}
+      />
+      {/* Visual digit indicators */}
+      <div className="flex gap-2">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
             key={i}
-            ref={(el) => { inputs.current[i] = el; }}
-            type="text"
-            inputMode="numeric"
-            maxLength={1}
-            value={digits[i] || ""}
-            onChange={(e) => handleChange(i, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(i, e)}
-            onPaste={handlePaste}
-            className="text-center text-2xl font-bold rounded-xl transition-all duration-150 outline-none"
-            style={{
-              width: 48,
-              height: 56,
-              border: "2px solid",
-              borderColor: isCurrent ? "#3b82f6" : hasDig ? "#cbd5e1" : "#e2e8f0",
-              background: hasDig ? "#eff6ff" : "#f8fafc",
-              color: "#1e40af",
-              boxShadow: isCurrent ? "0 0 0 4px rgba(59,130,246,0.12)" : "none",
-              caretColor: "transparent",
-            }}
+            className="w-2 h-2 rounded-full transition-all duration-200"
+            style={{ background: i < value.length ? "#3b82f6" : "#e2e8f0" }}
           />
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }
