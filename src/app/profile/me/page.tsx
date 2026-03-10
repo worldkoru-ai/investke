@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import NavBar from "@/app/NavBar/page";
 import {
@@ -118,85 +118,39 @@ function Field({
   );
 }
 
-// ── OTP: one hidden input captures all typing; visual divs show digits ──
-// Works on Chrome, Safari, Firefox, iOS, Android — no focus-juggling needed.
+// ── OTP input: single standard input, works everywhere ──
 function OtpInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const hiddenRef = useRef<HTMLInputElement>(null);
-  const [focused, setFocused] = useState(false);
-  const digits = value.padEnd(6, "").split("").slice(0, 6);
-
-  useEffect(() => {
-    const t = setTimeout(() => hiddenRef.current?.focus(), 80);
-    return () => clearTimeout(t);
-  }, []);
-
   return (
-    <div
-      className="relative flex gap-2 justify-center cursor-text select-none"
-      onClick={() => hiddenRef.current?.focus()}
-    >
-      {/* The only real <input> — invisible, covers the whole widget */}
-      <input
-        ref={hiddenRef}
-        type="text"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        maxLength={6}
-        value={value}
-        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        style={{
-          position: "absolute",
-          inset: 0,
-          opacity: 0,
-          width: "100%",
-          height: "100%",
-          zIndex: 10,
-          cursor: "text",
-          fontSize: 16, // prevents iOS auto-zoom
-        }}
-      />
-
-      {/* Visual digit boxes — purely decorative */}
-      {digits.map((d, i) => {
-        const isActive = focused && value.length === i;
-        const filled = !!d;
-        return (
-          <div
-            key={i}
-            style={{
-              width: 46,
-              height: 54,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 12,
-              border: "2px solid",
-              borderColor: isActive ? "#3b82f6" : filled ? "#93c5fd" : "#e2e8f0",
-              background:   filled  ? "#eff6ff" : "#f8fafc",
-              color: "#1e40af",
-              fontSize: 22,
-              fontWeight: 700,
-              boxShadow: isActive ? "0 0 0 4px rgba(59,130,246,0.15)" : "none",
-              transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
-            }}
-          >
-            {d || (isActive && (
-              <span style={{
-                display: "inline-block",
-                width: 2, height: 24,
-                background: "#3b82f6",
-                borderRadius: 2,
-                animation: "blink 1s step-end infinite",
-              }} />
-            ))}
-          </div>
-        );
-      })}
-    </div>
+    <input
+      type="text"
+      inputMode="numeric"
+      autoComplete="one-time-code"
+      maxLength={6}
+      value={value}
+      autoFocus
+      placeholder="______"
+      onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
+      style={{
+        width: "100%",
+        border: "2px solid #cbd5e1",
+        borderRadius: 12,
+        padding: "14px 12px",
+        textAlign: "center",
+        fontSize: 28,
+        fontWeight: 700,
+        letterSpacing: "0.4em",
+        color: "#1e40af",
+        background: "#f0f6ff",
+        outline: "none",
+        transition: "border-color 0.15s",
+        fontFamily: "monospace",
+      }}
+      onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
+      onBlur={(e)  => (e.target.style.borderColor = "#cbd5e1")}
+    />
   );
 }
+
 
 export default function ProfilePage() {
   const router = useRouter();
