@@ -2,9 +2,12 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react"; 
+
 
 
 export default function Register() {
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -92,24 +95,45 @@ const handleSubmit = async (e: { preventDefault: () => void; }) => {
             required
             className="w-full p-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
           />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            className="w-full p-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-            className="w-full p-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-          />
+          {/* Password */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+
+          {/* Confirm Password */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
 
           <button
           onClick={handleSubmit}

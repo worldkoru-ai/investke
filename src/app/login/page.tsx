@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react"; // optional, for eye icons
+import { Eye, EyeOff } from "lucide-react"; 
 
 
 export default function Login() {
