@@ -118,7 +118,7 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-gray-500 text-sm">Wallet Balance</p>
                     <p className="font-semibold text-black">
-                      ${Number(user.walletBalance).toFixed(2)}
+                      Ksh{Number(user.walletBalance).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -128,7 +128,7 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-gray-500 text-sm">Total Invested</p>
                     <p className="font-semibold text-black">
-                      ${Number(user.totalInvested).toFixed(2)}
+                      Ksh{Number(user.totalInvested).toFixed(2)}
                     </p>
                   </div>
                 </div>
