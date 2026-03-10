@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import NavBar from "@/app/NavBar/page";
 import {
@@ -95,6 +95,7 @@ function Field({
   label: string; placeholder: string; value: string;
   onChange: (v: string) => void; disabled: boolean; type?: string;
 }) {
+  const [focused, setFocused] = useState(false);
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</label>
@@ -104,15 +105,17 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         className="w-full rounded-lg px-4 py-2.5 text-sm text-slate-800 transition-all"
         style={{
           background: disabled ? "#f8fafc" : "#fff",
           border: "1.5px solid",
-          borderColor: disabled ? "#e2e8f0" : "#cbd5e1",
+          borderColor: disabled ? "#e2e8f0" : focused ? "#3b82f6" : "#cbd5e1",
           outline: "none",
+          boxShadow: focused && !disabled ? "0 0 0 3px rgba(59,130,246,0.12)" : "none",
+          cursor: disabled ? "not-allowed" : "text",
         }}
-        onFocus={(e) => { if (!disabled) e.target.style.borderColor = "#3b82f6"; }}
-        onBlur={(e) => { e.target.style.borderColor = disabled ? "#e2e8f0" : "#cbd5e1"; }}
       />
     </div>
   );
@@ -120,6 +123,7 @@ function Field({
 
 // ── OTP input: single standard input, works everywhere ──
 function OtpInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [focused, setFocused] = useState(false);
   return (
     <input
       type="text"
@@ -130,9 +134,11 @@ function OtpInput({ value, onChange }: { value: string; onChange: (v: string) =>
       autoFocus
       placeholder="______"
       onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       style={{
         width: "100%",
-        border: "2px solid #cbd5e1",
+        border: `2px solid ${focused ? "#3b82f6" : "#cbd5e1"}`,
         borderRadius: 12,
         padding: "14px 12px",
         textAlign: "center",
@@ -140,13 +146,12 @@ function OtpInput({ value, onChange }: { value: string; onChange: (v: string) =>
         fontWeight: 700,
         letterSpacing: "0.4em",
         color: "#1e40af",
-        background: "#f0f6ff",
+        background: focused ? "#eff6ff" : "#f0f6ff",
         outline: "none",
-        transition: "border-color 0.15s",
+        transition: "border-color 0.15s, background 0.15s",
         fontFamily: "monospace",
+        boxShadow: focused ? "0 0 0 4px rgba(59,130,246,0.15)" : "none",
       }}
-      onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
-      onBlur={(e)  => (e.target.style.borderColor = "#cbd5e1")}
     />
   );
 }
