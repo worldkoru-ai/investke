@@ -273,7 +273,7 @@ export default function Login() {
           }}/>
         </div>
 
-        {/* Ticker bar */}
+        {/* Ticker bar
         <div className="ticker-bar relative z-10 py-2 px-4 overflow-hidden">
           <div className="ticker-inner inline-flex gap-8 text-slate-400">
             {[
@@ -289,7 +289,7 @@ export default function Login() {
               </span>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Main content */}
         <div className="flex-1 flex items-center justify-center px-4 relative z-10">

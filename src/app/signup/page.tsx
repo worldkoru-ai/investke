@@ -277,7 +277,7 @@ export default function Register() {
         </div>
 
         {/* Ticker */}
-        <div className="ticker-bar relative z-10 py-2 overflow-hidden">
+        {/* <div className="ticker-bar relative z-10 py-2 overflow-hidden">
           <div className="ticker-inner inline-flex gap-8 px-4 text-slate-400">
             {[
               "AAPL +1.24%","TSLA -0.87%","BTC +3.12%","ETH +2.05%",
@@ -292,7 +292,7 @@ export default function Register() {
               </span>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Card */}
         <div className="flex-1 flex items-center justify-center px-4 py-8 relative z-10">
