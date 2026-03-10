@@ -212,34 +212,34 @@ export default function Register() {
         }
 
         .register-bg {
-          background-color: #060d1f;
+          background-color: #e8f0fe;
           background-image:
-            linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            linear-gradient(rgba(59,130,246,0.07) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.07) 1px, transparent 1px);
           background-size: 48px 48px;
         }
         .glass-card {
-          background: rgba(255,255,255,0.04);
+          background: rgba(255,255,255,0.75);
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(255,255,255,0.10);
+          border: 1px solid rgba(59,130,246,0.15);
           box-shadow:
-            0 0 0 1px rgba(99,179,237,0.07),
-            0 32px 64px rgba(0,0,0,0.55),
-            inset 0 1px 0 rgba(255,255,255,0.07);
+            0 0 0 1px rgba(59,130,246,0.08),
+            0 24px 56px rgba(59,130,246,0.12),
+            inset 0 1px 0 rgba(255,255,255,0.9);
           animation: fadein-up 0.55s ease both;
         }
         .input-dark {
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.12);
-          color: #e2e8f0;
+          background: rgba(255,255,255,0.85);
+          border: 1px solid rgba(59,130,246,0.2);
+          color: #1e293b;
           transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .input-dark::placeholder { color: rgba(255,255,255,0.28); }
+        .input-dark::placeholder { color: #94a3b8; }
         .input-dark:focus {
           outline: none;
-          border-color: rgba(99,179,237,0.7);
-          box-shadow: 0 0 0 3px rgba(99,179,237,0.14);
+          border-color: rgba(59,130,246,0.6);
+          box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
         }
         .btn-primary {
           background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
@@ -251,11 +251,11 @@ export default function Register() {
           transform: translateY(-1px);
         }
         .divider-line {
-          border-color: rgba(255,255,255,0.10);
+          border-color: rgba(59,130,246,0.15);
         }
         .ticker-bar {
-          background: rgba(255,255,255,0.04);
-          border-bottom: 1px solid rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.5);
+          border-bottom: 1px solid rgba(59,130,246,0.12);
           font-family: 'Courier New', monospace;
           font-size: 11px;
           letter-spacing: 0.05em;
@@ -272,7 +272,7 @@ export default function Register() {
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
           <div style={{
             width: 500, height: 500, borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(102, 144, 211, 0.08) 0%, transparent 70%)"
+            background: "radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)"
           }}/>
         </div>
 
@@ -287,7 +287,7 @@ export default function Register() {
               "NVDA +5.30%","AMZN +0.62%","MSFT +1.18%","GOOGL -0.34%",
               "SOL +4.71%","SPY +0.45%",
             ].map((t,i) => (
-              <span key={i} className={t.includes("+") ? "text-emerald-400" : "text-red-400"}>
+              <span key={i} className={t.includes("+") ? "text-emerald-600" : "text-red-500"}>
                 {t}
               </span>
             ))}
@@ -310,10 +310,10 @@ export default function Register() {
                       stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-                <span className="text-2xl font-bold text-white tracking-tight">Exovest</span>
+                <span className="text-2xl font-bold text-blue-700 tracking-tight">Exovest</span>
               </div>
-              <h2 className="text-lg font-semibold text-white mt-1">Create Your Account</h2>
-              <p className="text-slate-400 text-sm mt-1">Start your smart investment journey today.</p>
+              <h2 className="text-lg font-semibold text-slate-800 mt-1">Create Your Account</h2>
+              <p className="text-slate-500 text-sm mt-1">Start your smart investment journey today.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3.5">
@@ -350,7 +350,7 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200 transition-colors"
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
                 </button>
@@ -370,7 +370,7 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200 transition-colors"
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
                 </button>
@@ -392,14 +392,14 @@ export default function Register() {
 
             <p className="text-center text-slate-500 text-sm">
               Already have an account?{" "}
-              <Link href="/login" className="text-blue-400 hover:text-blue-300 transition-colors">
+              <Link href="/login" className="text-blue-600 hover:text-blue-700 transition-colors">
                 Log in
               </Link>
             </p>
           </div>
         </div>
 
-        <div className="relative z-10 text-center py-4 text-slate-600 text-xs">
+        <div className="relative z-10 text-center py-4 text-slate-400 text-xs">
           © {new Date().getFullYear()} Exovest. All rights reserved.
         </div>
       </div>

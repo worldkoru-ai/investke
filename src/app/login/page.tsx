@@ -203,33 +203,33 @@ export default function Login() {
         .card-fadein { animation: fadein 0.6s ease both; }
 
         .login-bg {
-          background-color: #060d1f;
+          background-color: #e8f0fe;
           background-image:
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            linear-gradient(rgba(59,130,246,0.07) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59,130,246,0.07) 1px, transparent 1px);
           background-size: 48px 48px;
         }
         .glass-card {
-          background: rgba(255, 255, 255, 0.04);
+          background: rgba(255,255,255,0.75);
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(255, 255, 255, 0.10);
+          border: 1px solid rgba(59,130,246,0.15);
           box-shadow:
-            0 0 0 1px rgba(99, 179, 237, 0.08),
-            0 32px 64px rgba(0, 0, 0, 0.5),
-            inset 0 1px 0 rgba(255,255,255,0.08);
+            0 0 0 1px rgba(59,130,246,0.08),
+            0 24px 56px rgba(59,130,246,0.12),
+            inset 0 1px 0 rgba(255,255,255,0.9);
         }
         .input-dark {
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.12);
-          color: #e2e8f0;
+          background: rgba(255,255,255,0.85);
+          border: 1px solid rgba(59,130,246,0.2);
+          color: #1e293b;
           transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .input-dark::placeholder { color: rgba(255,255,255,0.28); }
+        .input-dark::placeholder { color: #94a3b8; }
         .input-dark:focus {
           outline: none;
-          border-color: rgba(99,179,237,0.7);
-          box-shadow: 0 0 0 3px rgba(99,179,237,0.15);
+          border-color: rgba(59,130,246,0.6);
+          box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
         }
         .btn-primary {
           background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
@@ -242,13 +242,13 @@ export default function Login() {
         }
         .btn-primary:disabled { opacity: 0.5; }
         .forgot-panel {
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.10);
+          background: rgba(255,255,255,0.6);
+          border: 1px solid rgba(59,130,246,0.15);
           border-radius: 12px;
         }
         .ticker-bar {
-          background: rgba(255,255,255,0.04);
-          border-bottom: 1px solid rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.5);
+          border-bottom: 1px solid rgba(59,130,246,0.12);
           font-family: 'Courier New', monospace;
           font-size: 11px;
           letter-spacing: 0.05em;
@@ -269,7 +269,7 @@ export default function Login() {
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
           <div style={{
             width: 500, height: 500, borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)"
+            background: "radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)"
           }}/>
         </div>
 
@@ -284,7 +284,7 @@ export default function Login() {
               "NVDA +5.30%", "AMZN +0.62%", "MSFT +1.18%", "GOOGL -0.34%",
               "SOL +4.71%", "SPY +0.45%",
             ].map((t, i) => (
-              <span key={i} className={t.includes("+") ? "text-emerald-400" : "text-red-400"}>
+              <span key={i} className={t.includes("+") ? "text-emerald-600" : "text-red-500"}>
                 {t}
               </span>
             ))}
@@ -305,14 +305,14 @@ export default function Login() {
                     <polyline points="11,3 15,3 15,7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-                <span className="text-2xl font-bold text-white tracking-tight">Exovest</span>
+                <span className="text-2xl font-bold text-blue-700 tracking-tight">Exovest</span>
               </div>
-              <p className="text-slate-400 text-sm">Sign in to access your investment dashboard</p>
+              <p className="text-slate-500 text-sm">Sign in to access your investment dashboard</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-1.5">
+                <label className="block text-slate-600 text-sm font-medium mb-1.5">
                   Email Address
                 </label>
                 <input
@@ -326,7 +326,7 @@ export default function Login() {
               </div>
 
               <div className="relative">
-                <label className="block text-slate-300 text-sm font-medium mb-1.5">
+                <label className="block text-slate-600 text-sm font-medium mb-1.5">
                   Password
                 </label>
                 <input
@@ -340,7 +340,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-9 text-slate-400 hover:text-slate-200 transition-colors"
+                  className="absolute right-3 top-9 text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -373,7 +373,7 @@ export default function Login() {
 
             {showForgot && (
               <div className="mt-4 p-4 forgot-panel">
-                <p className="text-slate-300 text-sm mb-2">
+                <p className="text-slate-600 text-sm mb-2">
                   Enter your email to reset password:
                 </p>
                 <input
@@ -397,7 +397,7 @@ export default function Login() {
 
             <p className="text-center text-slate-500 text-sm mt-5">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-blue-400 hover:text-blue-300 transition-colors">
+              <Link href="/signup" className="text-blue-600 hover:text-blue-700 transition-colors">
                 Create one
               </Link>
             </p>
@@ -405,7 +405,7 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <div className="relative z-10 text-center py-4 text-slate-600 text-xs">
+        <div className="relative z-10 text-center py-4 text-slate-400 text-xs">
           © {new Date().getFullYear()} Exovest. All rights reserved.
         </div>
       </div>
