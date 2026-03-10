@@ -135,49 +135,61 @@ export default function ProfilePage() {
     pending: "bg-yellow-100 text-yellow-700",
   };
 
-  const handleSaveWithdrawal = async () => {
-    if (!awaitingOtp) {
-      try {
-        await sendOtp(user.email);
-        setAwaitingOtp(true);
-        setOtpExpiry(Date.now() + 5 * 60 * 1000);
-        alert("OTP sent to your email. Please enter it below.");
-      } catch (err) {
-        console.error(err);
-        alert("Failed to send OTP. Try again.");
-      }
-      return;
-    }
+ const handleSaveWithdrawal = async () => {
+  if (!awaitingOtp) {
+    try {
+      // ✅ Send OTP via API route
+      await fetch("/api/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email }),
+      });
 
-    // Verify OTP
-    const valid = await verifyOtp(user.email, otp);
-    if (!valid) {
+      setAwaitingOtp(true);
+      setOtpExpiry(Date.now() + 5 * 60 * 1000); // 5 minutes
+      alert("OTP sent to your email. Please enter it below.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send OTP. Try again.");
+    }
+    return;
+  }
+
+  // ✅ Verify OTP via another API route
+  try {
+    const res = await fetch("/api/verify-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: user.email, code: otp }),
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.valid) {
       alert("Invalid or expired OTP.");
       return;
     }
 
-    // Save withdrawal details
-    try {
-      const res = await fetch("/api/withdrawaldetails", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(user),
-      });
+    // Save withdrawal details after OTP verification
+    const saveRes = await fetch("/api/withdrawaldetails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(user),
+    });
 
-      if (res.ok) {
-        setIsEditing(false);
-        setOtp("");
-        setAwaitingOtp(false);
-        setOtpExpiry(null);
-        alert("Withdrawal details saved successfully!");
-      } else {
-        alert("Failed to save withdrawal details.");
-      }
-    } catch (err) {
-      console.error(err);
+    if (saveRes.ok) {
+      setIsEditing(false);
+      setOtp("");
+      setAwaitingOtp(false);
+      setOtpExpiry(null);
+      alert("Withdrawal details saved successfully!");
+    } else {
       alert("Failed to save withdrawal details.");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Failed to verify OTP or save details.");
+  }
+};
 
   return (
     <>
