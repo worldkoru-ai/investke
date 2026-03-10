@@ -1,44 +1,41 @@
-// pages/api/send-otp.ts
-import { NextApiRequest, NextApiResponse } from "next";
-import { sendEmail } from "@/lib/email";
+import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
+import mysql from "mysql2/promise";
 
-let otpStore: Record<string, { code: string; expires: number }> = {};
+const resend = new Resend(process.env.RESEND_API_KEY!);
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { email } = req.body;
+const db = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+});
 
-  if (!email) return res.status(400).json({ error: "Email required" });
+export async function POST(req: NextRequest) {
+  const { email } = await req.json();
+  if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
 
-  // Generate 6-digit OTP
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expires = Date.now() + 5 * 60 * 1000; // 5 minutes
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
 
-  otpStore[email] = { code, expires };
+  // Save OTP in MySQL
+  await db.execute(
+    `INSERT INTO user_otps (email, code, expires_at) VALUES (?, ?, ?)`,
+    [email, code, expiresAt]
+  );
 
+  // Send OTP via Resend
   try {
-    await sendEmail({
+    await resend.emails.send({
+      from: "Exovest <support@exovest.pro>",
       to: email,
-      subject: "Your Exovest OTP Code",
+      subject: "Your OTP Code",
       html: `<p>Your OTP code is <strong>${code}</strong>. It expires in 5 minutes.</p>`,
     });
-
-    res.status(200).json({ message: "OTP sent" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to send OTP" });
+    return NextResponse.json({ error: "Failed to send OTP" }, { status: 500 });
   }
-}
 
-// Optional: create /api/verify-otp to check OTP
-export async function verifyOtp(email: string, code: string) {
-  const record = otpStore[email];
-  if (!record) return false;
-  if (record.expires < Date.now()) {
-    delete otpStore[email];
-    return false;
-  }
-  if (record.code !== code) return false;
-
-  delete otpStore[email]; // invalidate OTP after use
-  return true;
+  return NextResponse.json({ success: true });
 }
