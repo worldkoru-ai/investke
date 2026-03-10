@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import NavBar from "@/app/NavBar/page";
 import {
@@ -118,41 +118,82 @@ function Field({
   );
 }
 
-// ── Simple, cross-browser OTP input ──
+// ── OTP: one hidden input captures all typing; visual divs show digits ──
+// Works on Chrome, Safari, Firefox, iOS, Android — no focus-juggling needed.
 function OtpInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const hiddenRef = useRef<HTMLInputElement>(null);
+  const [focused, setFocused] = useState(false);
+  const digits = value.padEnd(6, "").split("").slice(0, 6);
+
+  useEffect(() => {
+    const t = setTimeout(() => hiddenRef.current?.focus(), 80);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div
+      className="relative flex gap-2 justify-center cursor-text select-none"
+      onClick={() => hiddenRef.current?.focus()}
+    >
+      {/* The only real <input> — invisible, covers the whole widget */}
       <input
+        ref={hiddenRef}
         type="text"
         inputMode="numeric"
         autoComplete="one-time-code"
         maxLength={6}
         value={value}
         onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
-        placeholder="000000"
-        autoFocus
-        className="w-52 text-center text-3xl font-bold tracking-[0.5em] rounded-xl outline-none transition-all"
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         style={{
-          border: "2px solid #cbd5e1",
-          padding: "12px 8px 12px 20px",
-          color: "#1e40af",
-          background: "#f0f6ff",
-          letterSpacing: "0.5em",
-          fontFamily: "monospace",
+          position: "absolute",
+          inset: 0,
+          opacity: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: 10,
+          cursor: "text",
+          fontSize: 16, // prevents iOS auto-zoom
         }}
-        onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
-        onBlur={(e)  => (e.target.style.borderColor = "#cbd5e1")}
       />
-      {/* Visual digit indicators */}
-      <div className="flex gap-2">
-        {Array.from({ length: 6 }).map((_, i) => (
+
+      {/* Visual digit boxes — purely decorative */}
+      {digits.map((d, i) => {
+        const isActive = focused && value.length === i;
+        const filled = !!d;
+        return (
           <div
             key={i}
-            className="w-2 h-2 rounded-full transition-all duration-200"
-            style={{ background: i < value.length ? "#3b82f6" : "#e2e8f0" }}
-          />
-        ))}
-      </div>
+            style={{
+              width: 46,
+              height: 54,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 12,
+              border: "2px solid",
+              borderColor: isActive ? "#3b82f6" : filled ? "#93c5fd" : "#e2e8f0",
+              background:   filled  ? "#eff6ff" : "#f8fafc",
+              color: "#1e40af",
+              fontSize: 22,
+              fontWeight: 700,
+              boxShadow: isActive ? "0 0 0 4px rgba(59,130,246,0.15)" : "none",
+              transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
+            }}
+          >
+            {d || (isActive && (
+              <span style={{
+                display: "inline-block",
+                width: 2, height: 24,
+                background: "#3b82f6",
+                borderRadius: 2,
+                animation: "blink 1s step-end infinite",
+              }} />
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -189,10 +230,7 @@ export default function ProfilePage() {
     const interval = setInterval(() => {
       const s = Math.max(Math.floor((otpExpiry - Date.now()) / 1000), 0);
       setTimeLeft(s);
-      if (s <= 0) {
-        clearInterval(interval);
-        setOtpError("OTP expired. Please resend.");
-      }
+      if (s <= 0) { clearInterval(interval); setOtpError("OTP expired. Please resend."); }
     }, 1000);
     return () => clearInterval(interval);
   }, [otpExpiry]);
@@ -218,21 +256,14 @@ export default function ProfilePage() {
     pending:   { bg: "#fffbeb", color: "#d97706", border: "#fde68a" },
   };
 
-  const startEdit = () => {
-    setIsEditing(true); setEditStep(0);
-    setOtp(""); setOtpError(""); setOtpExpiry(null);
-  };
-  const cancelEdit = () => {
-    setIsEditing(false); setEditStep(0);
-    setOtp(""); setOtpError(""); setOtpExpiry(null);
-  };
+  const startEdit = () => { setIsEditing(true); setEditStep(0); setOtp(""); setOtpError(""); setOtpExpiry(null); };
+  const cancelEdit = () => { setIsEditing(false); setEditStep(0); setOtp(""); setOtpError(""); setOtpExpiry(null); };
 
   const handleSendOtp = async () => {
     setSendingOtp(true); setOtpError("");
     try {
       await fetch("/api/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: user.email }),
       });
       setOtpExpiry(Date.now() + 5 * 60 * 1000);
@@ -241,56 +272,43 @@ export default function ProfilePage() {
       setEditStep(2);
     } catch {
       setOtpError("Failed to send OTP. Please try again.");
-    } finally {
-      setSendingOtp(false);
-    }
+    } finally { setSendingOtp(false); }
   };
 
   const handleResendOtp = async () => {
     setOtp(""); setOtpError("");
     try {
       await fetch("/api/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: user.email }),
       });
       setOtpExpiry(Date.now() + 5 * 60 * 1000);
       setTimeLeft(300);
-    } catch {
-      setOtpError("Failed to resend. Please try again.");
-    }
+    } catch { setOtpError("Failed to resend. Please try again."); }
   };
 
   const handleVerifyAndSave = async () => {
-    if (otp.replace(/\s/g, "").length < 6) { setOtpError("Please enter the full 6-digit code."); return; }
+    if (otp.length < 6) { setOtpError("Please enter the full 6-digit code."); return; }
     setSaving(true); setOtpError("");
     try {
       const res = await fetch("/api/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: user.email, code: otp }),
       });
       const data = await res.json();
-      if (!res.ok || !data.valid) {
-        setOtpError("Incorrect code. Please check and try again.");
-        return;
-      }
+      if (!res.ok || !data.valid) { setOtpError("Incorrect code. Please check and try again."); return; }
       const saveRes = await fetch("/api/withdrawaldetails", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(user),
       });
       if (saveRes.ok) {
-        setIsEditing(false); setEditStep(0);
-        setOtp(""); setOtpExpiry(null);
+        setIsEditing(false); setEditStep(0); setOtp(""); setOtpExpiry(null);
       } else {
         setOtpError("OTP verified but failed to save details. Please retry.");
       }
     } catch {
       setOtpError("Something went wrong. Please try again.");
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
 
   const fmt = (t: number) =>
@@ -299,15 +317,13 @@ export default function ProfilePage() {
   return (
     <>
       <style>{`
-        @keyframes slide-up {
-          from { opacity:0; transform:translateY(16px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
+        @keyframes slide-up { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         .slide-up { animation: slide-up 0.35s ease both; }
         @keyframes fade-in { from { opacity:0; } to { opacity:1; } }
         .fade-in { animation: fade-in 0.25s ease both; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 1s linear infinite; }
+        @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
       `}</style>
 
       <NavBar />
@@ -334,9 +350,9 @@ export default function ProfilePage() {
               </div>
               <div className="grid grid-cols-2 divide-x divide-y divide-slate-50">
                 {[
-                  { icon: <Wallet size={18} />,    label: "Wallet Balance",   value: `Ksh ${Number(user.walletBalance).toFixed(2)}`,           color: "#3b82f6" },
-                  { icon: <Smartphone size={18} />, label: "Total Invested",   value: `Ksh ${Number(user.totalInvested).toFixed(2)}`,            color: "#6366f1" },
-                  { icon: <BadgeCheck size={18} />, label: "Interest Earned",  value: `Ksh ${Number(user.totalInterestEarned ?? 0).toFixed(2)}`, color: "#10b981" },
+                  { icon: <Wallet size={18} />,     label: "Wallet Balance",  value: `Ksh ${Number(user.walletBalance).toFixed(2)}`,            color: "#3b82f6" },
+                  { icon: <Smartphone size={18} />, label: "Total Invested",  value: `Ksh ${Number(user.totalInvested).toFixed(2)}`,             color: "#6366f1" },
+                  { icon: <BadgeCheck size={18} />, label: "Interest Earned", value: `Ksh ${Number(user.totalInterestEarned ?? 0).toFixed(2)}`,  color: "#10b981" },
                 ].map((item, i) => (
                   <div key={i} className="px-5 py-4 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -566,8 +582,7 @@ export default function ProfilePage() {
                       </p>
                     </div>
 
-                    {/* ── THE FIXED OTP INPUT ── */}
-                    <div className="mb-4">
+                    <div className="mb-5">
                       <OtpInput value={otp} onChange={(v) => { setOtp(v); setOtpError(""); }} />
                     </div>
 
@@ -578,8 +593,7 @@ export default function ProfilePage() {
                           Code expires in <span className="font-bold text-blue-500 tabular-nums">{fmt(timeLeft)}</span>
                         </span>
                       ) : (
-                        <button
-                          onClick={handleResendOtp}
+                        <button onClick={handleResendOtp}
                           className="flex items-center gap-1.5 text-sm font-semibold text-blue-500 hover:text-blue-700 transition">
                           <RefreshCw size={13} /> Resend code
                         </button>
@@ -598,14 +612,14 @@ export default function ProfilePage() {
                       </button>
                       <button
                         onClick={handleVerifyAndSave}
-                        disabled={saving || otp.replace(/\s/g,"").length < 6}
+                        disabled={saving || otp.length < 6}
                         className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
                         style={{
-                          background:  otp.length === 6 && !saving ? "#3b82f6" : "#e2e8f0",
-                          color:       otp.length === 6 && !saving ? "#fff" : "#94a3b8",
-                          cursor:      otp.length < 6 || saving ? "not-allowed" : "pointer",
-                          boxShadow:   otp.length === 6 && !saving ? "0 4px 14px rgba(59,130,246,0.3)" : "none",
-                          opacity:     saving ? 0.7 : 1,
+                          background: otp.length === 6 && !saving ? "#3b82f6" : "#e2e8f0",
+                          color:      otp.length === 6 && !saving ? "#fff" : "#94a3b8",
+                          cursor:     otp.length < 6 || saving ? "not-allowed" : "pointer",
+                          boxShadow:  otp.length === 6 && !saving ? "0 4px 14px rgba(59,130,246,0.3)" : "none",
+                          opacity:    saving ? 0.7 : 1,
                         }}>
                         {saving
                           ? <><RefreshCw size={15} className="spin" /> Saving…</>
