@@ -5,6 +5,32 @@ import { useRouter } from "next/navigation";
 import NavBar from "@/app/NavBar/page";
 import { CheckCircle, Clock, Wallet, Smartphone } from "lucide-react";
 
+// OTP store (simple in-memory)
+let otpStore: Record<string, { code: string; expires: number }> = {};
+async function sendOtp(email: string) {
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expires = Date.now() + 5 * 60 * 1000; // 5 minutes
+  otpStore[email] = { code, expires };
+
+  // Send OTP via API (Resend)
+  await fetch("/api/send-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code }),
+  });
+}
+async function verifyOtp(email: string, code: string) {
+  const record = otpStore[email];
+  if (!record) return false;
+  if (record.expires < Date.now()) {
+    delete otpStore[email];
+    return false;
+  }
+  if (record.code !== code) return false;
+  delete otpStore[email];
+  return true;
+}
+
 type User = {
   mobileProvider?: string;
   mobileNumber?: string;
@@ -32,6 +58,10 @@ export default function ProfilePage() {
   const [verification, setVerification] = useState<Verification | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [awaitingOtp, setAwaitingOtp] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpExpiry, setOtpExpiry] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -57,6 +87,26 @@ export default function ProfilePage() {
     loadProfile();
   }, [router]);
 
+  // OTP countdown
+  useEffect(() => {
+    if (!otpExpiry) return;
+
+    const interval = setInterval(() => {
+      const secondsLeft = Math.max(Math.floor((otpExpiry - Date.now()) / 1000), 0);
+      setTimeLeft(secondsLeft);
+
+      if (secondsLeft <= 0) {
+        clearInterval(interval);
+        alert("OTP expired. Please request a new one.");
+        setAwaitingOtp(false);
+        setOtp("");
+        setOtpExpiry(null);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [otpExpiry]);
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -66,7 +116,6 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
-  // ✅ Safe boolean logic
   const hasBankDetails =
     user.withdrawalMethod === "bank" &&
     !!user.bankName &&
@@ -86,33 +135,71 @@ export default function ProfilePage() {
     pending: "bg-yellow-100 text-yellow-700",
   };
 
+  const handleSaveWithdrawal = async () => {
+    if (!awaitingOtp) {
+      try {
+        await sendOtp(user.email);
+        setAwaitingOtp(true);
+        setOtpExpiry(Date.now() + 5 * 60 * 1000);
+        alert("OTP sent to your email. Please enter it below.");
+      } catch (err) {
+        console.error(err);
+        alert("Failed to send OTP. Try again.");
+      }
+      return;
+    }
+
+    // Verify OTP
+    const valid = await verifyOtp(user.email, otp);
+    if (!valid) {
+      alert("Invalid or expired OTP.");
+      return;
+    }
+
+    // Save withdrawal details
+    try {
+      const res = await fetch("/api/withdrawaldetails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user),
+      });
+
+      if (res.ok) {
+        setIsEditing(false);
+        setOtp("");
+        setAwaitingOtp(false);
+        setOtpExpiry(null);
+        alert("Withdrawal details saved successfully!");
+      } else {
+        alert("Failed to save withdrawal details.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save withdrawal details.");
+    }
+  };
+
   return (
     <>
       <NavBar />
-
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 pt-24 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6">
-
           {/* LEFT SIDE */}
           <div className="flex-1 space-y-6">
-
             {/* Profile Card */}
             <div className="bg-white p-6 rounded-xl shadow border">
               <h2 className="text-2xl text-indigo-700 font-bold mb-6">
                 My Profile
               </h2>
-
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-500 text-sm">Full Name</p>
                   <p className="font-semibold text-black">{user.name}</p>
                 </div>
-
                 <div>
                   <p className="text-gray-500 text-sm">Email</p>
                   <p className="font-semibold text-black">{user.email}</p>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <Wallet className="text-indigo-500" />
                   <div>
@@ -122,7 +209,6 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <Smartphone className="text-indigo-500" />
                   <div>
@@ -140,7 +226,6 @@ export default function ProfilePage() {
               <h3 className="text-xl font-bold mb-4 text-black flex items-center gap-2">
                 <Clock className="text-yellow-500" /> Verification Status
               </h3>
-
               {!verification ? (
                 <div className="bg-yellow-50 border p-4 rounded">
                   <p className="text-yellow-800">
@@ -165,12 +250,8 @@ export default function ProfilePage() {
 
           {/* RIGHT SIDE — Withdrawal Details */}
           <div className="flex-1 bg-white p-6 rounded-xl shadow border space-y-4">
-
             <div className="flex justify-between items-center">
-              <h3 className="text-xl font-bold text-black">
-                Withdrawal Details
-              </h3>
-
+              <h3 className="text-xl font-bold text-black">Withdrawal Details</h3>
               {hasWithdrawalDetails && !isEditing && (
                 <span className="flex items-center gap-1 text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full">
                   <CheckCircle size={16} />
@@ -249,33 +330,51 @@ export default function ProfilePage() {
               </div>
             )}
 
+            {/* OTP Input */}
+            {awaitingOtp && (
+              <div className="mt-4 flex flex-col gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full border p-2 rounded"
+                />
+                <span className="text-sm text-gray-500">
+                  OTP expires in: {Math.floor(timeLeft / 60)
+                    .toString()
+                    .padStart(2, "0")}
+                  :
+                  {(timeLeft % 60).toString().padStart(2, "0")}
+                </span>
+                {timeLeft <= 0 && (
+                  <button
+                    className="text-blue-600 text-sm mt-1"
+                    onClick={async () => {
+                      await sendOtp(user.email);
+                      setOtpExpiry(Date.now() + 5 * 60 * 1000);
+                      setOtp("");
+                      setAwaitingOtp(true);
+                      alert("New OTP sent!");
+                    }}
+                  >
+                    Resend OTP
+                  </button>
+                )}
+              </div>
+            )}
+
             <button
-              onClick={async () => {
-                if (hasWithdrawalDetails && !isEditing) {
-                  setIsEditing(true);
-                  return;
-                }
-
-                const res = await fetch("/api/withdrawaldetails", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(user),
-                });
-
-                if (res.ok) {
-                  setIsEditing(false);
-                } else {
-                  alert("Failed to save details");
-                }
-              }}
+              onClick={handleSaveWithdrawal}
               className="mt-4 bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 w-full"
             >
               {hasWithdrawalDetails && !isEditing
                 ? "Edit Withdrawal Details"
+                : awaitingOtp
+                ? "Verify OTP & Save"
                 : "Save Withdrawal Details"}
             </button>
           </div>
-
         </div>
       </div>
     </>
