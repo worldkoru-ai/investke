@@ -272,7 +272,7 @@ export default function Register() {
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
           <div style={{
             width: 500, height: 500, borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)"
+            background: "radial-gradient(circle, rgba(102, 144, 211, 0.08) 0%, transparent 70%)"
           }}/>
         </div>
 
